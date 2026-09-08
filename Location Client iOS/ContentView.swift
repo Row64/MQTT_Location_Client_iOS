@@ -24,9 +24,6 @@ struct ContentView: View {
     @State var statusMsg: String = "Status messages appear here..."
     
     
-    // ...
-//    @FocusState private var hostFieldIsFocused: Bool = false
-    
     
     var body: some View {
         Form {
@@ -155,8 +152,10 @@ struct ContentView: View {
                 
                 
                 
-                // Attempt a connection
-                // ...
+                // Attempt to establish a connection
+                statusMsg = "Attempting to connect..."
+                var client = MqClient(inputLogin: login)
+                
                 
                 
             } label: {
@@ -174,9 +173,6 @@ struct ContentView: View {
         }
         .padding()
     }
-    
-    
-    
     
     
 }

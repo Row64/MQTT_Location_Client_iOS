@@ -25,7 +25,6 @@ class MqLogin {
     
     /**
      Retrieve the login and assign to the class' variables.
-     
      Perform a basic syntax check for the port number.
      */
     func setCredentials(
@@ -51,7 +50,7 @@ class MqLogin {
         
         // Convert port (String) to integer
         // Failed conversion does not throw an error, but is an optional Int
-        // Use nil coalescing to force a value for failed conversion
+        // Use nil coalescing to assign a value for failed conversion
         // Use an out-of-range port number to signify an error
         port = Int(inputPort) ?? -1
         
@@ -62,15 +61,7 @@ class MqLogin {
             throw MqCredentialsError.badPort
         }
             
-        
-        
-        
-        
     }
-    
-    
-    
-    
     
     
     /**
@@ -85,16 +76,27 @@ class MqLogin {
      This function returns an integer that signifies which authentication method was detected:
      0 = No authentication
      1 = Username only
-     2 = Basic authentication (username & password
+     2 = Basic authentication (username & password)
+     -1 = Error
      */
     func getAuthMethod() -> Int {
-        
-        
-        return 0
+        if user.isEmpty {
+            print("Detected authentication: No authentication")
+            return 0
+        }
+        else if !user.isEmpty && pass.isEmpty {
+            print("Detected authentication: Username, no password")
+            return 1
+        }
+        else if !user.isEmpty && !pass.isEmpty {
+            print("Detected authentication: Basic authentication")
+            return 2
+        }
+        else {
+            print("Detected authentication: ERROR")
+            return -1
+        }
     }
-    
-    
-    
     
     
     /**
@@ -104,30 +106,13 @@ class MqLogin {
      Otherwise, old credentials will be carried over to a new login attempt.
      */
     func clearCredentials() {
-        
+        host = ""
+        port = -1
+        user = ""
+        pass = ""
     }
     
     
-    
-    /**
-     Sets the value of the status message.
-     
-     Can also be used to log messages in the future...
-     */
-//    func logStatusMsg(msg: String) {
-//        statusMsg = msg
-//        
-//        // Log message ...
-//        // ...
-//    }
-    
-    
-    /**
-     Retrieve the status message
-     */
-//    func getStatusMsg() -> String {
-//        return statusMsg
-//    }
     
     
     
