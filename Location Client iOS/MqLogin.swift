@@ -22,6 +22,9 @@ class MqLogin {
     private var user: String
     private var pass: String
     
+    // Status messages
+//    var statusMsg: String = "Status messages appear here..."
+    
     
     /**
      Retrieve the login and assign to the class' variables.
@@ -98,6 +101,28 @@ class MqLogin {
     func clearCredentials() {
         
     }
+    
+    
+    
+    /**
+     Sets the value of the status message.
+     
+     Can also be used to log messages in the future...
+     */
+//    func logStatusMsg(msg: String) {
+//        statusMsg = msg
+//        
+//        // Log message ...
+//        // ...
+//    }
+    
+    
+    /**
+     Retrieve the status message
+     */
+//    func getStatusMsg() -> String {
+//        return statusMsg
+//    }
     
     
     
