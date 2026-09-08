@@ -119,15 +119,6 @@ struct ContentView: View {
             // Connect button
             Button {
                 
-                
-                // For testing text updates
-//                login.logStatusMsg(msg: "Button clicked!")
-                statusMsg = "(Testing) Button clicked!"
-                
-                
-                
-                
-                
                 // Clear any existing credential data before submitting
                 // new inputs
                 login.clearCredentials()
@@ -142,19 +133,30 @@ struct ContentView: View {
                         inputPass: inputPass
                         )
                 }
-                catch {
+                catch MqCredentialsError.missingRequired {
+                    statusMsg = "ERROR: Host and port are required. Additionally provide a username and password if your broker requires authentication."
                     
-                    // For testing
-                    print("ERROR: Bad port")
-                    
-//                    login.logStatusMsg(msg: "ERROR: Invalid port detected.")
+                    return
+                }
+                catch MqCredentialsError.badPort {
                     statusMsg = "ERROR: Invalid port detected. Please input a valid port number within the range 1 to 65,535"
                     
-                    // ...
+                    return
+                }
+                catch {
+                    statusMsg = "ERROR: Unexpected credential error"
                     
+                    return
+
                 }
                 
+                // FOR TESTING
+//                statusMsg = "FOR TESTING:\n\(inputHost)\n\(inputPort)\n\(inputUser)\n\(inputPass)"
+                
+                
+                
                 // Attempt a connection
+                // ...
                 
                 
             } label: {

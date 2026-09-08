@@ -22,9 +22,6 @@ class MqLogin {
     private var user: String
     private var pass: String
     
-    // Status messages
-//    var statusMsg: String = "Status messages appear here..."
-    
     
     /**
      Retrieve the login and assign to the class' variables.
@@ -38,6 +35,14 @@ class MqLogin {
         inputPass: String
     ) throws
     {
+        
+        // Verify that requird credentials are present
+        // Host and port are required. Username and password are optional
+        if (inputHost.isEmpty || inputHost.isEmpty) {
+            throw MqCredentialsError.missingRequired
+        }
+        
+        
         // Assign inputted variables to login variables
         host = inputHost
         user = inputUser

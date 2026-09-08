@@ -7,6 +7,9 @@
 
 enum MqCredentialsError: Error {
     
+    // Throw when required credentials are missing
+    case missingRequired
+    
     // Throw for invalid port range
     case badPort
     
