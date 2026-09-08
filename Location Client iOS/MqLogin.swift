@@ -11,14 +11,14 @@ class MqLogin {
     
     init() {
         host = ""
-        port = -1
+        port = 0
         user = ""
         pass = ""
     }
     
     // Login variables
     private var host: String
-    private var port: Int
+    private var port: UInt16
     private var user: String
     private var pass: String
     
@@ -52,7 +52,7 @@ class MqLogin {
         // Failed conversion does not throw an error, but is an optional Int
         // Use nil coalescing to assign a value for failed conversion
         // Use an out-of-range port number to signify an error
-        port = Int(inputPort) ?? -1
+        port = UInt16(inputPort) ?? 0
         
         
         // Check that port is within valid range
@@ -107,7 +107,7 @@ class MqLogin {
      */
     func clearCredentials() {
         host = ""
-        port = -1
+        port = 0
         user = ""
         pass = ""
     }
@@ -115,5 +115,15 @@ class MqLogin {
     
     
     
+    
+    
+    
+    func getHost() -> String { return host }
+    
+    func getPort() -> UInt16 { return port }
+    
+    func getUser() -> String { return user }
+    
+    func getPass() -> String { return pass }
     
 }
