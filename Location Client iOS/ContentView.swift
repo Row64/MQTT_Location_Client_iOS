@@ -20,6 +20,7 @@ struct ContentView: View {
     
     // MQTT objects
     private var login = MqLogin()
+    @State private var client = MqClient()
     
     // Status message variable
     @State var statusMsg: String = "Status messages appear here..."
@@ -117,7 +118,7 @@ struct ContentView: View {
             // Connect button
             Button {
                 
-                print("Button clicked!")
+                print("Connect button clicked") // For testing
                 
                 // Clear any existing credential data before submitting
                 // new inputs
@@ -135,32 +136,32 @@ struct ContentView: View {
                 }
                 catch MqCredentialsError.missingRequired {
                     statusMsg = "ERROR: Host and port are required. Additionally provide a username and password if your broker requires authentication."
-                    
                     return
                 }
                 catch MqCredentialsError.badPort {
                     statusMsg = "ERROR: Invalid port detected. Please input a valid port number within the range 1 to 65,535"
-                    
                     return
                 }
                 catch {
                     statusMsg = "ERROR: Unexpected credential error"
-                    
                     return
 
                 }
                 
-                // FOR TESTING
-//                statusMsg = "FOR TESTING:\n\(inputHost)\n\(inputPort)\n\(inputUser)\n\(inputPass)"
-                
-                
+                // Initialize MQTT client class
+                client = MqClient()
+                client.initializeLogin(mqLogin: login)
+                client.initializeMqtt3Client(login: login)
+                client.initializeMqtt5Client(login: login)
                 
                 // Attempt to establish a connection
                 statusMsg = "Attempting to connect..."
-//                var client = MqClient(inputLogin: login)
-//                client.connectToBroker()
-//                mqManager.mqtt.ping()
-                _ = mqManager.mqtt.connect()
+                client.connectToBroker()
+                
+
+                // FOR TESTING
+                // This works
+//                _ = mqManager.mqtt.connect()
                 
                 
                 

@@ -17,36 +17,68 @@ import CocoaMQTT
 class MqClient: CocoaMQTTDelegate {
     
     // My login objects
-    var login: MqLogin
-    var authMethod: Int
+//    var login: MqLogin
+//    var authMethod: Int
+    private var login: MqLogin? = nil
+    private var authMethod: Int = -1
     
     // MQTT client library objects
-    let clientID: String
-    var connectProperties: MqttConnectProperties
-    var mqtt5: CocoaMQTT5
-    var mqtt3: CocoaMQTT!
+//    let clientID: String
+//    var connectProperties: MqttConnectProperties
+//    var mqtt5: CocoaMQTT5
+//    var mqtt: CocoaMQTT
+    private var clientID: String = "CocoaMQTT5-" + String(ProcessInfo.processInfo.processIdentifier)
+    private var connectProperties: MqttConnectProperties? = nil
+    var mqtt5: CocoaMQTT5? = nil
+    var mqtt: CocoaMQTT? = nil
     
     
-    init(inputLogin: MqLogin) {
-        
-        login = inputLogin
-        authMethod = login.getAuthMethod()
-        
-        clientID = "CocoaMQTT5-" + String(ProcessInfo.processInfo.processIdentifier)
-        
-        // Connection properties for MQTT 5
-        connectProperties = MqttConnectProperties()
-        connectProperties.topicAliasMaximum = 10
-        connectProperties.sessionExpiryInterval = 60
-        connectProperties.receiveMaximum = 100
-        connectProperties.maximumPacketSize = 1024 * 1024
-        
-        mqtt5 = CocoaMQTT5(clientID: clientID, host: login.getHost(), port: login.getPort())
-        mqtt3 = CocoaMQTT(clientID: clientID, host: login.getHost(), port: login.getPort())
-        
-        mqtt5.connectProperties = connectProperties
+    init() {
         
     }
+    
+    
+    /**
+     Consider removing this init
+     
+     This class will likely only be initialized without parameters.
+     */
+//    init(inputLogin: MqLogin) {
+//        
+//        login = inputLogin
+//        authMethod = login.getAuthMethod()
+//        
+//        clientID = "CocoaMQTT5-" + String(ProcessInfo.processInfo.processIdentifier)
+//        
+//        // Connection properties for MQTT 5
+//        connectProperties = MqttConnectProperties()
+//        connectProperties.topicAliasMaximum = 10
+//        connectProperties.sessionExpiryInterval = 60
+//        connectProperties.receiveMaximum = 100
+//        connectProperties.maximumPacketSize = 1024 * 1024
+//        
+//        // Assign connection variables
+//        mqtt5 = CocoaMQTT5(clientID: clientID, host: login.getHost(), port: login.getPort())
+//        mqtt = CocoaMQTT(clientID: clientID, host: login.getHost(), port: login.getPort())
+//        
+//        // Set connect properties for MQTT 5
+//        mqtt5.connectProperties = connectProperties
+//        
+//        // MQTT v3.1.1 client configuration
+//        mqtt.keepAlive = 60
+//        mqtt.delegate = self
+//        mqtt.username = "row64"
+//        mqtt.password = "password"
+//        mqtt.enableSSL = true // Important when using port 8883
+//        mqtt.autoReconnect = true
+//        
+//        
+//        // MQTT v5 client configuration
+//        // ...
+//        
+//        
+//        
+//    }
     
     
     // ----------------------------------------------------------------------
@@ -60,23 +92,28 @@ class MqClient: CocoaMQTTDelegate {
      */
     func connectToBroker() {
         
-        switch authMethod {
-        case 0:
-            print("Attempting to connect with no authentication...")
-//            connectNoAuth()
-            
-            print("NOT IMPLEMENTED...")
-        case 1:
-            print("Attempting to connect with username and no password...")
-            
-            print("NOT IMPLEMENTED...")
-//            connectUsername()
-        case 2:
-            print("Attempting to connect with basic authentication...")
-            connectBasic()
-        default:
-            print("Error: Unknown authentication method.")
-        }
+//        switch authMethod {
+//        case 0:
+//            print("Attempting to connect with no authentication...")
+////            connectNoAuth()
+//            
+//            print("NOT IMPLEMENTED...")
+//        case 1:
+//            print("Attempting to connect with username and no password...")
+//            
+//            print("NOT IMPLEMENTED...")
+////            connectUsername()
+//        case 2:
+//            print("Attempting to connect with basic authentication...")
+//            connectBasic()
+//        default:
+//            print("Error: Unknown authentication method.")
+//        }
+        
+        
+        
+        // Testing
+        connectBasic()
         
     }
     
@@ -93,17 +130,43 @@ class MqClient: CocoaMQTTDelegate {
         print("Got to connectBasic()")
         
         print("Attempting to connect with v3.1.1 using basic authentication...")
-        // MQTT 3 connect
         
-        mqtt3.username = login.getUser()
-        mqtt3.password = login.getPass()
-        mqtt3.willMessage = CocoaMQTTMessage(topic: "/will", string: "dieout")
-        mqtt3.keepAlive = 60
-        mqtt3.autoReconnect = true
-        mqtt3.delegate = self
-        mqtt3.connect()
+        // MQTT 3 connect
+        mqtt!.username = login!.getUser()
+        mqtt!.password = login!.getPass()
+        _ = mqtt!.connect()
         
     }
+    
+    // ----------------------------------------------------------------------
+    // Initializing functions
+    
+    func initializeMqtt3Client(login: MqLogin) {
+        mqtt = CocoaMQTT(clientID: clientID, host: login.getHost(), port: login.getPort())
+        
+        // MQTT v3.1.1 client configuration
+        // Login object does not currently take configuration, so preset
+        // values are currently used.
+        mqtt!.keepAlive = 60
+        mqtt!.delegate = self
+        mqtt!.enableSSL = true // Important when using port 8883
+        mqtt!.autoReconnect = true
+    }
+    
+    
+    func initializeMqtt5Client(login: MqLogin) {
+        
+        print("WARNING: initializeMqtt5Client() is not yet implemented...")
+        
+        //...
+        
+    }
+    
+    
+    func initializeLogin(mqLogin: MqLogin) {
+        login = mqLogin
+    }
+    
     
     
     
@@ -112,43 +175,59 @@ class MqClient: CocoaMQTTDelegate {
     
     // ----------------------------------------------------------------------
     // CocoaMQTTDelegate functions
-    // https://stackoverflow.com/questions/76933554/swiftui-cocoamqtt-server-how-to-connect-without-using-button
     
     
-    
-    func mqtt(_ mqtt: CocoaMQTT, didConnect host: String, port: Int) {
-        print("Got to didConnect()")
+    // For connection status
+    func mqtt(_ mqtt: CocoaMQTT, didConnectAck ack: CocoaMQTTConnAck) {
+        print("ack: \(ack)")
+        
+        if ack == .accept {
+            print("Ack accepted")
+            
+            // FOR TESTING
+            print("Attempting to send test message...")
+            mqtt.publish("TEST", withString: "Test message (new)")
+        }
+        else {
+            print("Ack rejected")
+        }
     }
+    
+    // For when a message is published
+    func mqtt(_ mqtt: CocoaMQTT, didPublishMessage message: CocoaMQTTMessage, id: UInt16) {
+        print("Message published: \(message.string!.description), id: \(id)")
+    }
+    
+    func mqtt(_ mqtt: CocoaMQTT, didPublishAck id: UInt16) {
+        print("id: \(id)")
+        print("Message received")
+    }
+    
+    
     
     
     
     func mqtt(_ mqtt: CocoaMQTT, didSubscribeTopics success: NSDictionary, failed: [String]) {
+        print("topic: \(success)")
     }
-        
+    
     func mqtt(_ mqtt: CocoaMQTT, didUnsubscribeTopics topics: [String]) {
-    }
-    
-    func mqtt(_ mqtt: CocoaMQTT, didConnectAck ack: CocoaMQTTConnAck) {
-        if ack == .accept {
-            print("Connection was successful")
-        }
-        else {
-            print("Failed to connect")
-            print(ack)
-        }
-        
-    }
-    
-    func mqtt(_ mqtt: CocoaMQTT, didPublishMessage message: CocoaMQTTMessage, id: UInt16) {
-    }
-    
-    func mqtt(_ mqtt: CocoaMQTT, didPublishAck id: UInt16) {
+        print("topic: \(topics)")
     }
     
     func mqtt(_ mqtt: CocoaMQTT, didReceiveMessage message: CocoaMQTTMessage, id: UInt16) {
+//            print("message received: \(message.string.description), id: \(id)")
+//            if let str = message.string { // <--- here or something like this
+//                self.message = str
+//            }
     }
-        
+    
+//        func mqtt(_ mqtt: CocoaMQTT, didSubscribeTopics success: NSDictionary, failed: [String]) {
+//            print("didSubscribeTopics")
+//        }
+    
     func mqtt(_ mqtt: CocoaMQTT, didUnsubscribeTopic topic: String) {
+        print("didUnsubscribeTopic")
     }
     
     func mqttDidPing(_ mqtt: CocoaMQTT) {
@@ -158,7 +237,65 @@ class MqClient: CocoaMQTTDelegate {
     }
     
     func mqttDidDisconnect(_ mqtt: CocoaMQTT, withError err: Error?) {
+        print("\(err!)")
+        print("\tHost: \(mqtt.host)\n\tPort: \(mqtt.port)")
+        
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+//    func mqtt(_ mqtt: CocoaMQTT, didConnect host: String, port: Int) {
+//        print("Got to didConnect()")
+//    }
+//    
+//    func mqtt(_ mqtt: CocoaMQTT, didSubscribeTopics success: NSDictionary, failed: [String]) {
+//    }
+//        
+//    func mqtt(_ mqtt: CocoaMQTT, didUnsubscribeTopics topics: [String]) {
+//    }
+//    
+//    func mqtt(_ mqtt: CocoaMQTT, didConnectAck ack: CocoaMQTTConnAck) {
+//        if ack == .accept {
+//            print("Connection was successful")
+//        }
+//        else {
+//            print("Failed to connect")
+//            print(ack)
+//        }
+//        
+//    }
+//    
+//    func mqtt(_ mqtt: CocoaMQTT, didPublishMessage message: CocoaMQTTMessage, id: UInt16) {
+//    }
+//    
+//    func mqtt(_ mqtt: CocoaMQTT, didPublishAck id: UInt16) {
+//    }
+//    
+//    func mqtt(_ mqtt: CocoaMQTT, didReceiveMessage message: CocoaMQTTMessage, id: UInt16) {
+//    }
+//        
+//    func mqtt(_ mqtt: CocoaMQTT, didUnsubscribeTopic topic: String) {
+//    }
+//    
+//    func mqttDidPing(_ mqtt: CocoaMQTT) {
+//    }
+//    
+//    func mqttDidReceivePong(_ mqtt: CocoaMQTT) {
+//    }
+//    
+//    func mqttDidDisconnect(_ mqtt: CocoaMQTT, withError err: Error?) {
+//    }
     
     
     

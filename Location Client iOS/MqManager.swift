@@ -24,16 +24,16 @@ class MqManager: ObservableObject, CocoaMQTTDelegate {
 //        @Published var message = ""
         
         init() {
-            // ....
+            // ...
             mqtt.keepAlive = 60
-            mqtt.delegate = self  // <--- here
+            mqtt.delegate = self
             
             mqtt.username = "row64"
             mqtt.password = "password"
             
             mqtt.enableSSL = true
             mqtt.autoReconnect = true
-            mqtt.willMessage = CocoaMQTTMessage(topic: "/will", string: "dieout")
+//            mqtt.willMessage = CocoaMQTTMessage(topic: "/will", string: "dieout")
             
             print("FOR TESTING:")
             print("\(mqtt.host)\n\(mqtt.port)\n\(mqtt.username!)\n\(mqtt.password!)")
