@@ -14,17 +14,17 @@
 import Foundation
 import CocoaMQTT
 
-class MqClient {
+class MqClient: CocoaMQTTDelegate {
     
     // My login objects
-    let login: MqLogin
-    let authMethod: Int
+    var login: MqLogin
+    var authMethod: Int
     
     // MQTT client library objects
     let clientID: String
-    let connectProperties: MqttConnectProperties
-    let mqtt5: CocoaMQTT5
-    let mqtt3: CocoaMQTT
+    var connectProperties: MqttConnectProperties
+    var mqtt5: CocoaMQTT5
+    var mqtt3: CocoaMQTT!
     
     
     init(inputLogin: MqLogin) {
@@ -64,8 +64,12 @@ class MqClient {
         case 0:
             print("Attempting to connect with no authentication...")
 //            connectNoAuth()
+            
+            print("NOT IMPLEMENTED...")
         case 1:
             print("Attempting to connect with username and no password...")
+            
+            print("NOT IMPLEMENTED...")
 //            connectUsername()
         case 2:
             print("Attempting to connect with basic authentication...")
@@ -85,16 +89,75 @@ class MqClient {
      */
     private func connectBasic() {
         
-        // MQTT 5 connect
+        // For testing
+        print("Got to connectBasic()")
         
-        mqtt5.username = login.getUser()
-        mqtt5.password = login.getPass()
-        mqtt5.willMessage = CocoaMQTT5Message(topic: "/will", string: "dieout")
-        mqtt5.keepAlive = 60
-        mqtt5.autoReconnect = true
-//        mqtt5.delegate = self
-        mqtt5.connect()
+        print("Attempting to connect with v3.1.1 using basic authentication...")
+        // MQTT 3 connect
         
+        mqtt3.username = login.getUser()
+        mqtt3.password = login.getPass()
+        mqtt3.willMessage = CocoaMQTTMessage(topic: "/will", string: "dieout")
+        mqtt3.keepAlive = 60
+        mqtt3.autoReconnect = true
+        mqtt3.delegate = self
+        mqtt3.connect()
+        
+    }
+    
+    
+    
+    
+    
+    
+    // ----------------------------------------------------------------------
+    // CocoaMQTTDelegate functions
+    // https://stackoverflow.com/questions/76933554/swiftui-cocoamqtt-server-how-to-connect-without-using-button
+    
+    
+    
+    func mqtt(_ mqtt: CocoaMQTT, didConnect host: String, port: Int) {
+        print("Got to didConnect()")
+    }
+    
+    
+    
+    func mqtt(_ mqtt: CocoaMQTT, didSubscribeTopics success: NSDictionary, failed: [String]) {
+    }
+        
+    func mqtt(_ mqtt: CocoaMQTT, didUnsubscribeTopics topics: [String]) {
+    }
+    
+    func mqtt(_ mqtt: CocoaMQTT, didConnectAck ack: CocoaMQTTConnAck) {
+        if ack == .accept {
+            print("Connection was successful")
+        }
+        else {
+            print("Failed to connect")
+            print(ack)
+        }
+        
+    }
+    
+    func mqtt(_ mqtt: CocoaMQTT, didPublishMessage message: CocoaMQTTMessage, id: UInt16) {
+    }
+    
+    func mqtt(_ mqtt: CocoaMQTT, didPublishAck id: UInt16) {
+    }
+    
+    func mqtt(_ mqtt: CocoaMQTT, didReceiveMessage message: CocoaMQTTMessage, id: UInt16) {
+    }
+        
+    func mqtt(_ mqtt: CocoaMQTT, didUnsubscribeTopic topic: String) {
+    }
+    
+    func mqttDidPing(_ mqtt: CocoaMQTT) {
+    }
+    
+    func mqttDidReceivePong(_ mqtt: CocoaMQTT) {
+    }
+    
+    func mqttDidDisconnect(_ mqtt: CocoaMQTT, withError err: Error?) {
     }
     
     

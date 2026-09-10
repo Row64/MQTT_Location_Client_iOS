@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CocoaMQTT
 
 struct ContentView: View {
     
@@ -23,7 +24,7 @@ struct ContentView: View {
     // Status message variable
     @State var statusMsg: String = "Status messages appear here..."
     
-    
+    @StateObject var mqManager = MqManager()
     
     var body: some View {
         Form {
@@ -116,6 +117,8 @@ struct ContentView: View {
             // Connect button
             Button {
                 
+                print("Button clicked!")
+                
                 // Clear any existing credential data before submitting
                 // new inputs
                 login.clearCredentials()
@@ -154,7 +157,10 @@ struct ContentView: View {
                 
                 // Attempt to establish a connection
                 statusMsg = "Attempting to connect..."
-                var client = MqClient(inputLogin: login)
+//                var client = MqClient(inputLogin: login)
+//                client.connectToBroker()
+//                mqManager.mqtt.ping()
+                _ = mqManager.mqtt.connect()
                 
                 
                 
