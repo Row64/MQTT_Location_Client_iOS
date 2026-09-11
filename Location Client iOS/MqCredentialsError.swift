@@ -13,4 +13,7 @@ enum MqCredentialsError: Error {
     // Throw for invalid port range
     case badPort
     
+    // Throw when variables are not properly initialized
+    case loginNotInitialized
+    
 }

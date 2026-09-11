@@ -21,9 +21,10 @@ struct ContentView: View {
     // MQTT objects
     private var login = MqLogin()
     @State private var client = MqClient()
+//    @State private var client: MqClient
     
     // Status message variable
-    @State var statusMsg: String = "Status messages appear here..."
+    @State public var statusMsg: String = "Status messages appear here..."
     
     @StateObject var mqManager = MqManager()
     
@@ -148,14 +149,17 @@ struct ContentView: View {
 
                 }
                 
-                // Initialize MQTT client class
-                client = MqClient()
-                client.initializeLogin(mqLogin: login)
-                client.initializeMqtt3Client(login: login)
-                client.initializeMqtt5Client(login: login)
+                // Assign login to MQTT client
+                client.setLogin(mqLogin: login)
+                
+                client.setView(v: self)
+                
+//                client.initializeLogin(mqLogin: login)
+//                client.initializeMqtt3Client(login: login)
+//                client.initializeMqtt5Client(login: login)
                 
                 // Attempt to establish a connection
-                statusMsg = "Attempting to connect..."
+//                statusMsg = "Attempting to connect..."
                 client.connectToBroker()
                 
 

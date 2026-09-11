@@ -19,18 +19,23 @@ class MqClient: CocoaMQTTDelegate {
     // My login objects
 //    var login: MqLogin
 //    var authMethod: Int
-    private var login: MqLogin? = nil
-    private var authMethod: Int = -1
+    
+    private var login: MqLogin?
+    private var authMethod: Int?
+    
+    private var view: ContentView?
     
     // MQTT client library objects
 //    let clientID: String
 //    var connectProperties: MqttConnectProperties
 //    var mqtt5: CocoaMQTT5
 //    var mqtt: CocoaMQTT
-    private var clientID: String = "CocoaMQTT5-" + String(ProcessInfo.processInfo.processIdentifier)
-    private var connectProperties: MqttConnectProperties? = nil
-    var mqtt5: CocoaMQTT5? = nil
-    var mqtt: CocoaMQTT? = nil
+    
+//    private var clientID: String = "CocoaMQTT5-" + String(ProcessInfo.processInfo.processIdentifier)
+    private var clientID: String?
+    private var connectProperties: MqttConnectProperties?
+    var mqtt5: CocoaMQTT5?
+    var mqtt: CocoaMQTT?
     
     
     init() {
@@ -92,6 +97,25 @@ class MqClient: CocoaMQTTDelegate {
      */
     func connectToBroker() {
         
+        // Initialize the MQTT clients
+        // Both clients should be able to be initialized, regardless of the MQTT version needed
+        do {
+            try initializeMqtt3Client()
+//            try initializeMqtt5Client()
+        }
+        catch {
+            print("ERROR: Exception caught when initializing MQTT clients. Is the login initialized?")
+            print("Aborting connection attempt")
+            return
+        }
+        
+        
+        // Need to detect auth method
+        // ...
+        
+        
+        // Connect based on detected auth method
+        
 //        switch authMethod {
 //        case 0:
 //            print("Attempting to connect with no authentication...")
@@ -126,10 +150,9 @@ class MqClient: CocoaMQTTDelegate {
      */
     private func connectBasic() {
         
-        // For testing
-        print("Got to connectBasic()")
-        
         print("Attempting to connect with v3.1.1 using basic authentication...")
+        
+        view?.statusMsg = "Attempting to connect with v3.1.1 using basic authentication."
         
         // MQTT 3 connect
         mqtt!.username = login!.getUser()
@@ -141,20 +164,43 @@ class MqClient: CocoaMQTTDelegate {
     // ----------------------------------------------------------------------
     // Initializing functions
     
-    func initializeMqtt3Client(login: MqLogin) {
-        mqtt = CocoaMQTT(clientID: clientID, host: login.getHost(), port: login.getPort())
-        
-        // MQTT v3.1.1 client configuration
-        // Login object does not currently take configuration, so preset
-        // values are currently used.
-        mqtt!.keepAlive = 60
-        mqtt!.delegate = self
-        mqtt!.enableSSL = true // Important when using port 8883
-        mqtt!.autoReconnect = true
+    
+    func setLogin(mqLogin: MqLogin) {
+        login = mqLogin
     }
     
     
-    func initializeMqtt5Client(login: MqLogin) {
+    private func initializeMqtt3Client() throws {
+        
+        clientID = "CocoaMQTT3-" + String(ProcessInfo.processInfo.processIdentifier)
+        
+        // Initialize client and properties if login and ID are present
+        if (clientID != nil && login != nil) {
+            
+            mqtt = CocoaMQTT(clientID: clientID!, host: login!.getHost(), port: login!.getPort())
+            
+            // MQTT v3.1.1 client configuration
+            // Login object does not currently take configuration, so preset
+            // values are currently used.
+            mqtt!.keepAlive = 60
+            mqtt!.delegate = self
+            mqtt!.enableSSL = true // Important when using port 8883
+            mqtt!.autoReconnect = true
+            
+            print("MQTT 3 client successfully initialized")
+        }
+        else {
+            print("ERROR: Login or client ID has not been initialized")
+            throw MqCredentialsError.loginNotInitialized
+        }
+    }
+    
+    
+    private func initializeMqtt5Client() {
+        
+        clientID = "CocoaMQTT5-" + String(ProcessInfo.processInfo.processIdentifier)
+        
+        
         
         print("WARNING: initializeMqtt5Client() is not yet implemented...")
         
@@ -163,11 +209,11 @@ class MqClient: CocoaMQTTDelegate {
     }
     
     
-    func initializeLogin(mqLogin: MqLogin) {
-        login = mqLogin
+    
+    
+    func setView(v: ContentView) {
+        view = v
     }
-    
-    
     
     
     
@@ -183,6 +229,8 @@ class MqClient: CocoaMQTTDelegate {
         
         if ack == .accept {
             print("Ack accepted")
+            
+            view?.statusMsg = "Successfully connected to the broker!"
             
             // FOR TESTING
             print("Attempting to send test message...")
