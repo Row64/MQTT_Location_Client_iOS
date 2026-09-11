@@ -62,8 +62,8 @@
             filePath = "Location Client iOS/MqClient.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "160"
-            endingLineNumber = "160"
+            startingLineNumber = "175"
+            endingLineNumber = "175"
             landmarkName = "connectBasic()"
             landmarkType = "7">
          </BreakpointContent>
@@ -142,8 +142,8 @@
             filePath = "Location Client iOS/MqClient.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "180"
-            endingLineNumber = "180"
+            startingLineNumber = "195"
+            endingLineNumber = "195"
             landmarkName = "initializeMqtt3Client()"
             landmarkType = "7">
          </BreakpointContent>

@@ -150,14 +150,29 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
      */
     private func connectBasic() {
         
-        print("Attempting to connect with v3.1.1 using basic authentication...")
-        
-        view?.statusMsg = "Attempting to connect with v3.1.1 using basic authentication..."
-        
-        // MQTT 3 connect
+        // Set credentials for basic authentication
         mqtt!.username = login!.getUser()
         mqtt!.password = login!.getPass()
-        _ = mqtt!.connect()
+        mqtt5!.username = login!.getUser()
+        mqtt5!.password = login!.getPass()
+        
+        view?.statusMsg = "Attempting to connect using basic authentication..."
+        
+        // Try first to connect with v5
+        // If v5 connect fails, its delegate will call v3.1.1 connect
+        _ = mqtt5!.connect()
+        
+        
+        
+        
+        
+//        print("Attempting to connect with v3.1.1 using basic authentication...")
+//        
+//        view?.statusMsg = "Attempting to connect with v3.1.1 using basic authentication..."
+        
+        // MQTT 3 connect
+        
+//        _ = mqtt!.connect()
         
         
     }
@@ -187,7 +202,7 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
             mqtt!.keepAlive = 60
             mqtt!.delegate = self
             mqtt!.enableSSL = true // Important when using port 8883
-            mqtt!.autoReconnect = true
+            mqtt!.autoReconnect = false
             
             print("MQTT 3 client successfully initialized")
         }
@@ -198,7 +213,7 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     }
     
     
-    private func initializeMqtt5Client() {
+    private func initializeMqtt5Client() throws {
         
         clientID5 = "CocoaMQTT5-" + String(ProcessInfo.processInfo.processIdentifier)
         
@@ -213,7 +228,7 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
             mqtt5!.keepAlive = 60
             mqtt5!.delegate = self
             mqtt5!.enableSSL = true // Important when using port 8883
-            mqtt5!.autoReconnect = true
+            mqtt5!.autoReconnect = false
             
             print("MQTT 5 client successfully initialized")
         }
@@ -221,10 +236,6 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
             print("ERROR: Login or client ID has not been initialized")
             throw MqCredentialsError.loginNotInitialized
         }
-        
-        
-        
-        
         
         
     }
@@ -249,17 +260,17 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
         print("ack: \(ack)")
         
         if ack == .accept {
-            print("Ack accepted")
+            print("v3 ack accepted")
             
-            view?.statusMsg = "Successfully connected to the broker"
+            view?.statusMsg = "Successfully connected to the broker with v3.1.1"
             
             // FOR TESTING
             print("Attempting to send test message...")
-            mqtt.publish("TEST", withString: "Test message (new)")
+            mqtt.publish("TEST", withString: "Test message from v3.1.1 (new)")
         }
         else {
-            print("Ack rejected")
-            view?.statusMsg = "Failed to connect.\nack: \(ack)"
+            print("v3 ack rejected")
+            view?.statusMsg = "Failed to connect to broker.\nack: \(ack)"
         }
     }
     
@@ -276,8 +287,14 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     
     // For errors during connection attempt
     func mqttDidDisconnect(_ mqtt: CocoaMQTT, withError err: Error?) {
-        print("\(err!)")
-        view?.statusMsg = "Error encountered while attempting to connect. Connection failed.\n\n\(err!)"
+//        print("\(err!)")
+//        view?.statusMsg = "Error encountered while attempting to connect with v3.1.1. Connection failed.\n\n\(err!)"
+        view?.statusMsg = "Error encountered while attempting to connect."
+        
+        if (err != nil) {
+            view?.statusMsg += "\n\n\(err!)"
+            print("\(err!)")
+        }
         
     }
     
@@ -317,115 +334,96 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-//    func mqtt(_ mqtt: CocoaMQTT, didConnect host: String, port: Int) {
-//        print("Got to didConnect()")
-//    }
-//    
-//    func mqtt(_ mqtt: CocoaMQTT, didSubscribeTopics success: NSDictionary, failed: [String]) {
-//    }
-//        
-//    func mqtt(_ mqtt: CocoaMQTT, didUnsubscribeTopics topics: [String]) {
-//    }
-//    
-//    func mqtt(_ mqtt: CocoaMQTT, didConnectAck ack: CocoaMQTTConnAck) {
-//        if ack == .accept {
-//            print("Connection was successful")
-//        }
-//        else {
-//            print("Failed to connect")
-//            print(ack)
-//        }
-//        
-//    }
-//    
-//    func mqtt(_ mqtt: CocoaMQTT, didPublishMessage message: CocoaMQTTMessage, id: UInt16) {
-//    }
-//    
-//    func mqtt(_ mqtt: CocoaMQTT, didPublishAck id: UInt16) {
-//    }
-//    
-//    func mqtt(_ mqtt: CocoaMQTT, didReceiveMessage message: CocoaMQTTMessage, id: UInt16) {
-//    }
-//        
-//    func mqtt(_ mqtt: CocoaMQTT, didUnsubscribeTopic topic: String) {
-//    }
-//    
-//    func mqttDidPing(_ mqtt: CocoaMQTT) {
-//    }
-//    
-//    func mqttDidReceivePong(_ mqtt: CocoaMQTT) {
-//    }
-//    
-//    func mqttDidDisconnect(_ mqtt: CocoaMQTT, withError err: Error?) {
-//    }
-    
-    
-    
-    
     // ----------------------------------------------------------------------
     // CocoaMQTTDelegate functions
     // VERSION 5
     
+    
     func mqtt5(_ mqtt5: CocoaMQTT5, didConnectAck ack: CocoaMQTTCONNACKReasonCode, connAckData: MqttDecodeConnAck?) {
-        <#code#>
+        
+        if ack == .success {
+            print("v5 ack accepted")
+            
+            view?.statusMsg = "Successfully connected to the broker with v5"
+            
+            // FOR TESTING
+//            print("Attempting to send test message...")
+//            mqtt5.publish("TEST", withString: "Test message from v5")
+        }
+        else {
+            print("v5 ack rejected")
+            view?.statusMsg = "Failed to connect using v5.\nack: \(ack)"
+            
+            // Attempt to connect using v3.1.1
+            view?.statusMsg += "\nAttempting to connect using v3.1.1..."
+            _ = mqtt!.connect()
+            
+            
+        }
+        
     }
     
+    
+    // For errors
+    func mqtt5DidDisconnect(_ mqtt5: CocoaMQTT5, withError err: (any Error)?) {
+//        print("\(err)")
+//        view?.statusMsg = "Error encountered while attempting to connect with v5. Connection failed.\n\n\(err)"
+        view?.statusMsg = "Error encountered while attempting to connect with v5."
+        
+        if (err != nil) {
+            view?.statusMsg += "\n\n\(err!)"
+            print("\(err!)")
+        }
+        
+    }
+    
+    
+    
+    
+    
+    
+    
     func mqtt5(_ mqtt5: CocoaMQTT5, didPublishMessage message: CocoaMQTT5Message, id: UInt16) {
-        <#code#>
+        print("Message published: \(message.string!.description), id: \(id)")
     }
     
     func mqtt5(_ mqtt5: CocoaMQTT5, didPublishAck id: UInt16, pubAckData: MqttDecodePubAck?) {
-        <#code#>
+        
     }
     
     func mqtt5(_ mqtt5: CocoaMQTT5, didPublishRec id: UInt16, pubRecData: MqttDecodePubRec?) {
-        <#code#>
+        
     }
     
     func mqtt5(_ mqtt5: CocoaMQTT5, didReceiveMessage message: CocoaMQTT5Message, id: UInt16, publishData: MqttDecodePublish?) {
-        <#code#>
+        
     }
     
     func mqtt5(_ mqtt5: CocoaMQTT5, didSubscribeTopics success: NSDictionary, failed: [String], subAckData: MqttDecodeSubAck?) {
-        <#code#>
+        
     }
     
     func mqtt5(_ mqtt5: CocoaMQTT5, didUnsubscribeTopics topics: [String], unsubAckData: MqttDecodeUnsubAck?) {
-        <#code#>
+        
     }
     
     func mqtt5(_ mqtt5: CocoaMQTT5, didReceiveDisconnectReasonCode reasonCode: CocoaMQTTDISCONNECTReasonCode) {
-        <#code#>
+        
     }
     
     func mqtt5(_ mqtt5: CocoaMQTT5, didReceiveAuthReasonCode reasonCode: CocoaMQTTAUTHReasonCode) {
-        <#code#>
+        
     }
     
     func mqtt5DidPing(_ mqtt5: CocoaMQTT5) {
-        <#code#>
+        
     }
     
     func mqtt5DidReceivePong(_ mqtt5: CocoaMQTT5) {
-        <#code#>
+        
     }
     
-    func mqtt5DidDisconnect(_ mqtt5: CocoaMQTT5, withError err: (any Error)?) {
-        <#code#>
-    }
+    
     
     
     
