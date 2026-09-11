@@ -287,12 +287,11 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     
     // For errors during connection attempt
     func mqttDidDisconnect(_ mqtt: CocoaMQTT, withError err: Error?) {
-//        print("\(err!)")
-//        view?.statusMsg = "Error encountered while attempting to connect with v3.1.1. Connection failed.\n\n\(err!)"
-        view?.statusMsg = "Error encountered while attempting to connect."
-        
+
+//        view?.statusMsg += "Error encountered while attempting to connect."
+//        
         if (err != nil) {
-            view?.statusMsg += "\n\n\(err!)"
+//            view?.statusMsg += "\n\n\(err!)"
             print("\(err!)")
         }
         
@@ -355,7 +354,7 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
             view?.statusMsg = "Failed to connect using v5.\nack: \(ack)"
             
             // Attempt to connect using v3.1.1
-            view?.statusMsg += "\nAttempting to connect using v3.1.1..."
+            view?.statusMsg += "\n\nAttempting to connect using v3.1.1..."
             _ = mqtt!.connect()
             
             
@@ -366,12 +365,11 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     
     // For errors
     func mqtt5DidDisconnect(_ mqtt5: CocoaMQTT5, withError err: (any Error)?) {
-//        print("\(err)")
-//        view?.statusMsg = "Error encountered while attempting to connect with v5. Connection failed.\n\n\(err)"
-        view?.statusMsg = "Error encountered while attempting to connect with v5."
-        
+
+//        view?.statusMsg = "Error encountered while attempting to connect with v5."
+//        
         if (err != nil) {
-            view?.statusMsg += "\n\n\(err!)"
+//            view?.statusMsg += "\n\n\(err!)"
             print("\(err!)")
         }
         
