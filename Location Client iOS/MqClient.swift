@@ -14,7 +14,7 @@
 import Foundation
 import CocoaMQTT
 
-class MqClient: CocoaMQTTDelegate {
+class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     
     // My login objects
 //    var login: MqLogin
@@ -32,11 +32,11 @@ class MqClient: CocoaMQTTDelegate {
 //    var mqtt: CocoaMQTT
     
 //    private var clientID: String = "CocoaMQTT5-" + String(ProcessInfo.processInfo.processIdentifier)
-    private var clientID: String?
+    private var clientID3: String?
+    private var clientID5: String?
     private var connectProperties: MqttConnectProperties?
-    var mqtt5: CocoaMQTT5?
     var mqtt: CocoaMQTT?
-    
+    var mqtt5: CocoaMQTT5?
     
     init() {
         
@@ -101,7 +101,7 @@ class MqClient: CocoaMQTTDelegate {
         // Both clients should be able to be initialized, regardless of the MQTT version needed
         do {
             try initializeMqtt3Client()
-//            try initializeMqtt5Client()
+            try initializeMqtt5Client()
         }
         catch {
             print("ERROR: Exception caught when initializing MQTT clients. Is the login initialized?")
@@ -152,12 +152,13 @@ class MqClient: CocoaMQTTDelegate {
         
         print("Attempting to connect with v3.1.1 using basic authentication...")
         
-        view?.statusMsg = "Attempting to connect with v3.1.1 using basic authentication."
+        view?.statusMsg = "Attempting to connect with v3.1.1 using basic authentication..."
         
         // MQTT 3 connect
         mqtt!.username = login!.getUser()
         mqtt!.password = login!.getPass()
         _ = mqtt!.connect()
+        
         
     }
     
@@ -165,19 +166,20 @@ class MqClient: CocoaMQTTDelegate {
     // Initializing functions
     
     
-    func setLogin(mqLogin: MqLogin) {
-        login = mqLogin
-    }
+    func setLogin(mqLogin: MqLogin) { login = mqLogin }
+    
+    
+    func setView(v: ContentView) { view = v }
     
     
     private func initializeMqtt3Client() throws {
         
-        clientID = "CocoaMQTT3-" + String(ProcessInfo.processInfo.processIdentifier)
+        clientID3 = "CocoaMQTT3-" + String(ProcessInfo.processInfo.processIdentifier)
         
         // Initialize client and properties if login and ID are present
-        if (clientID != nil && login != nil) {
+        if (clientID3 != nil && login != nil) {
             
-            mqtt = CocoaMQTT(clientID: clientID!, host: login!.getHost(), port: login!.getPort())
+            mqtt = CocoaMQTT(clientID: clientID3!, host: login!.getHost(), port: login!.getPort())
             
             // MQTT v3.1.1 client configuration
             // Login object does not currently take configuration, so preset
@@ -198,22 +200,39 @@ class MqClient: CocoaMQTTDelegate {
     
     private func initializeMqtt5Client() {
         
-        clientID = "CocoaMQTT5-" + String(ProcessInfo.processInfo.processIdentifier)
+        clientID5 = "CocoaMQTT5-" + String(ProcessInfo.processInfo.processIdentifier)
+        
+        // Initialize client and properties if login and ID are present
+        if (clientID5 != nil && login != nil) {
+            
+            mqtt5 = CocoaMQTT5(clientID: clientID5!, host: login!.getHost(), port: login!.getPort())
+            
+            // MQTT v5 client configuration
+            // Login object does not currently take configuration, so preset
+            // values are currently used.
+            mqtt5!.keepAlive = 60
+            mqtt5!.delegate = self
+            mqtt5!.enableSSL = true // Important when using port 8883
+            mqtt5!.autoReconnect = true
+            
+            print("MQTT 5 client successfully initialized")
+        }
+        else {
+            print("ERROR: Login or client ID has not been initialized")
+            throw MqCredentialsError.loginNotInitialized
+        }
         
         
         
-        print("WARNING: initializeMqtt5Client() is not yet implemented...")
         
-        //...
+        
         
     }
     
     
     
     
-    func setView(v: ContentView) {
-        view = v
-    }
+    
     
     
     
@@ -221,16 +240,18 @@ class MqClient: CocoaMQTTDelegate {
     
     // ----------------------------------------------------------------------
     // CocoaMQTTDelegate functions
+    // VERSION 3.1.1
     
     
     // For connection status
     func mqtt(_ mqtt: CocoaMQTT, didConnectAck ack: CocoaMQTTConnAck) {
+        
         print("ack: \(ack)")
         
         if ack == .accept {
             print("Ack accepted")
             
-            view?.statusMsg = "Successfully connected to the broker!"
+            view?.statusMsg = "Successfully connected to the broker"
             
             // FOR TESTING
             print("Attempting to send test message...")
@@ -238,6 +259,7 @@ class MqClient: CocoaMQTTDelegate {
         }
         else {
             print("Ack rejected")
+            view?.statusMsg = "Failed to connect.\nack: \(ack)"
         }
     }
     
@@ -246,10 +268,19 @@ class MqClient: CocoaMQTTDelegate {
         print("Message published: \(message.string!.description), id: \(id)")
     }
     
+    // For receiving messages
     func mqtt(_ mqtt: CocoaMQTT, didPublishAck id: UInt16) {
         print("id: \(id)")
         print("Message received")
     }
+    
+    // For errors during connection attempt
+    func mqttDidDisconnect(_ mqtt: CocoaMQTT, withError err: Error?) {
+        print("\(err!)")
+        view?.statusMsg = "Error encountered while attempting to connect. Connection failed.\n\n\(err!)"
+        
+    }
+    
     
     
     
@@ -284,11 +315,7 @@ class MqClient: CocoaMQTTDelegate {
     func mqttDidReceivePong(_ mqtt: CocoaMQTT) {
     }
     
-    func mqttDidDisconnect(_ mqtt: CocoaMQTT, withError err: Error?) {
-        print("\(err!)")
-        print("\tHost: \(mqtt.host)\n\tPort: \(mqtt.port)")
-        
-    }
+    
     
     
     
@@ -349,6 +376,61 @@ class MqClient: CocoaMQTTDelegate {
     
     
     // ----------------------------------------------------------------------
+    // CocoaMQTTDelegate functions
+    // VERSION 5
+    
+    func mqtt5(_ mqtt5: CocoaMQTT5, didConnectAck ack: CocoaMQTTCONNACKReasonCode, connAckData: MqttDecodeConnAck?) {
+        <#code#>
+    }
+    
+    func mqtt5(_ mqtt5: CocoaMQTT5, didPublishMessage message: CocoaMQTT5Message, id: UInt16) {
+        <#code#>
+    }
+    
+    func mqtt5(_ mqtt5: CocoaMQTT5, didPublishAck id: UInt16, pubAckData: MqttDecodePubAck?) {
+        <#code#>
+    }
+    
+    func mqtt5(_ mqtt5: CocoaMQTT5, didPublishRec id: UInt16, pubRecData: MqttDecodePubRec?) {
+        <#code#>
+    }
+    
+    func mqtt5(_ mqtt5: CocoaMQTT5, didReceiveMessage message: CocoaMQTT5Message, id: UInt16, publishData: MqttDecodePublish?) {
+        <#code#>
+    }
+    
+    func mqtt5(_ mqtt5: CocoaMQTT5, didSubscribeTopics success: NSDictionary, failed: [String], subAckData: MqttDecodeSubAck?) {
+        <#code#>
+    }
+    
+    func mqtt5(_ mqtt5: CocoaMQTT5, didUnsubscribeTopics topics: [String], unsubAckData: MqttDecodeUnsubAck?) {
+        <#code#>
+    }
+    
+    func mqtt5(_ mqtt5: CocoaMQTT5, didReceiveDisconnectReasonCode reasonCode: CocoaMQTTDISCONNECTReasonCode) {
+        <#code#>
+    }
+    
+    func mqtt5(_ mqtt5: CocoaMQTT5, didReceiveAuthReasonCode reasonCode: CocoaMQTTAUTHReasonCode) {
+        <#code#>
+    }
+    
+    func mqtt5DidPing(_ mqtt5: CocoaMQTT5) {
+        <#code#>
+    }
+    
+    func mqtt5DidReceivePong(_ mqtt5: CocoaMQTT5) {
+        <#code#>
+    }
+    
+    func mqtt5DidDisconnect(_ mqtt5: CocoaMQTT5, withError err: (any Error)?) {
+        <#code#>
+    }
+    
+    
+    
+    // ----------------------------------------------------------------------
+    
     
     
     
