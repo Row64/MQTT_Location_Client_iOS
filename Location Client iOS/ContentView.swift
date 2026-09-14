@@ -18,15 +18,20 @@ struct ContentView: View {
     
     @State private var isPasswordVisible = false
     
+    
     // MQTT objects
     private var login = MqLogin()
     @State private var client = MqClient()
-//    @State private var client: MqClient
+
+    
+    // Location object
+    private var location = LocationManager()
+//    @State private var location: LocationManager
+    
     
     // Status message variable
     @State public var statusMsg: String = "Status messages appear here..."
     
-    @StateObject var mqManager = MqManager()
     
     var body: some View {
         Form {
@@ -177,6 +182,31 @@ struct ContentView: View {
                     .cornerRadius(16)
             }
             
+            
+            
+            
+            
+            
+            
+            // Location updates button
+            Button {
+//                location = LocationManager()
+                location.startLocationUpdates()
+                
+            } label: {
+                Text("Send location updates")
+                    .padding(.all)
+                    .background(.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(16)
+                }
+            
+            
+            
+            
+            
+            
+            // System message output text field
             Text(statusMsg)
 
             
