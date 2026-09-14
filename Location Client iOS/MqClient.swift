@@ -34,7 +34,8 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
 //    private var clientID: String = "CocoaMQTT5-" + String(ProcessInfo.processInfo.processIdentifier)
     private var clientID3: String?
     private var clientID5: String?
-    private var connectProperties: MqttConnectProperties?
+    private var connectProperties: MqttConnectProperties?   // For v5 connecting (not relevant for v3)
+    private var publishProperties: MqttPublishProperties?   // For v5 publishing (not relevant for v3)
     var mqtt: CocoaMQTT?
     var mqtt5: CocoaMQTT5?
     
@@ -183,9 +184,7 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     
     func setLogin(mqLogin: MqLogin) { login = mqLogin }
     
-    
     func setView(v: ContentView) { view = v }
-    
     
     private func initializeMqtt3Client() throws {
         
@@ -222,6 +221,14 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
             
             mqtt5 = CocoaMQTT5(clientID: clientID5!, host: login!.getHost(), port: login!.getPort())
             
+            // Publish properties
+            // Default values found at:
+            // https://www.emqx.com/en/blog/ios-mqtt5-client#tutorial-implementing-mqtt-50-in-ios-with-cocoamqtt
+            publishProperties = MqttPublishProperties()
+            publishProperties?.payloadFormatIndicator = .utf8
+            publishProperties?.messageExpiryInterval = 60
+            publishProperties?.userProperty = ["source": "ios"]
+            
             // MQTT v5 client configuration
             // Login object does not currently take configuration, so preset
             // values are currently used.
@@ -242,13 +249,6 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     
     
     
-    
-    
-    
-    
-    
-    
-    
     // ----------------------------------------------------------------------
     // CocoaMQTTDelegate functions
     // VERSION 3.1.1
@@ -266,7 +266,7 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
             
             // FOR TESTING
             print("Attempting to send test message...")
-            mqtt.publish("TEST", withString: "Test message from v3.1.1 (new)")
+            mqtt.publish("TEST", withString: "Test message from v3.1.1")
         }
         else {
             print("v3 ack rejected")
@@ -277,6 +277,7 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     // For when a message is published
     func mqtt(_ mqtt: CocoaMQTT, didPublishMessage message: CocoaMQTTMessage, id: UInt16) {
         print("Message published: \(message.string!.description), id: \(id)")
+        view?.statusMsg = "Published message:\n\tMessage:\(message.string!.description)\n\tID: \(id)"
     }
     
     // For receiving messages
@@ -299,37 +300,12 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     
     
     
-    
-    
-    
-    func mqtt(_ mqtt: CocoaMQTT, didSubscribeTopics success: NSDictionary, failed: [String]) {
-        print("topic: \(success)")
-    }
-    
-    func mqtt(_ mqtt: CocoaMQTT, didUnsubscribeTopics topics: [String]) {
-        print("topic: \(topics)")
-    }
-    
-    func mqtt(_ mqtt: CocoaMQTT, didReceiveMessage message: CocoaMQTTMessage, id: UInt16) {
-//            print("message received: \(message.string.description), id: \(id)")
-//            if let str = message.string { // <--- here or something like this
-//                self.message = str
-//            }
-    }
-    
-//        func mqtt(_ mqtt: CocoaMQTT, didSubscribeTopics success: NSDictionary, failed: [String]) {
-//            print("didSubscribeTopics")
-//        }
-    
-    func mqtt(_ mqtt: CocoaMQTT, didUnsubscribeTopic topic: String) {
-        print("didUnsubscribeTopic")
-    }
-    
-    func mqttDidPing(_ mqtt: CocoaMQTT) {
-    }
-    
-    func mqttDidReceivePong(_ mqtt: CocoaMQTT) {
-    }
+    func mqtt(_ mqtt: CocoaMQTT, didSubscribeTopics success: NSDictionary, failed: [String]) { }
+    func mqtt(_ mqtt: CocoaMQTT, didUnsubscribeTopics topics: [String]) { }
+    func mqtt(_ mqtt: CocoaMQTT, didReceiveMessage message: CocoaMQTTMessage, id: UInt16) { }
+    func mqtt(_ mqtt: CocoaMQTT, didUnsubscribeTopic topic: String) { }
+    func mqttDidPing(_ mqtt: CocoaMQTT) { }
+    func mqttDidReceivePong(_ mqtt: CocoaMQTT) { }
     
     
     
@@ -346,8 +322,21 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
             view?.statusMsg = "Successfully connected to the broker with v5"
             
             // FOR TESTING
-//            print("Attempting to send test message...")
-//            mqtt5.publish("TEST", withString: "Test message from v5")
+            view?.statusMsg += "Attempting to send a test message..."
+            print("Attempting to send test message...")
+            if (publishProperties != nil) {
+                mqtt5.publish(
+                    "TEST",
+                    withString: "Test message from v5",
+                    properties: publishProperties!
+                )
+            }
+            else {
+                print("ERROR: Could not publish message. publishProperties is nil. Has publishProperties been initialized?")
+            }
+            
+            
+            
         }
         else {
             print("v5 ack rejected")
@@ -376,52 +365,23 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     }
     
     
-    
-    
-    
-    
-    
+    // For publishing messages
     func mqtt5(_ mqtt5: CocoaMQTT5, didPublishMessage message: CocoaMQTT5Message, id: UInt16) {
         print("Message published: \(message.string!.description), id: \(id)")
-    }
-    
-    func mqtt5(_ mqtt5: CocoaMQTT5, didPublishAck id: UInt16, pubAckData: MqttDecodePubAck?) {
-        
-    }
-    
-    func mqtt5(_ mqtt5: CocoaMQTT5, didPublishRec id: UInt16, pubRecData: MqttDecodePubRec?) {
-        
-    }
-    
-    func mqtt5(_ mqtt5: CocoaMQTT5, didReceiveMessage message: CocoaMQTT5Message, id: UInt16, publishData: MqttDecodePublish?) {
-        
-    }
-    
-    func mqtt5(_ mqtt5: CocoaMQTT5, didSubscribeTopics success: NSDictionary, failed: [String], subAckData: MqttDecodeSubAck?) {
-        
-    }
-    
-    func mqtt5(_ mqtt5: CocoaMQTT5, didUnsubscribeTopics topics: [String], unsubAckData: MqttDecodeUnsubAck?) {
-        
-    }
-    
-    func mqtt5(_ mqtt5: CocoaMQTT5, didReceiveDisconnectReasonCode reasonCode: CocoaMQTTDISCONNECTReasonCode) {
-        
-    }
-    
-    func mqtt5(_ mqtt5: CocoaMQTT5, didReceiveAuthReasonCode reasonCode: CocoaMQTTAUTHReasonCode) {
-        
-    }
-    
-    func mqtt5DidPing(_ mqtt5: CocoaMQTT5) {
-        
-    }
-    
-    func mqtt5DidReceivePong(_ mqtt5: CocoaMQTT5) {
-        
+        view?.statusMsg = "Published message:\n\tMessage:\(message.string!.description)\n\tID: \(id)"
     }
     
     
+    
+    func mqtt5(_ mqtt5: CocoaMQTT5, didPublishAck id: UInt16, pubAckData: MqttDecodePubAck?) { }
+    func mqtt5(_ mqtt5: CocoaMQTT5, didPublishRec id: UInt16, pubRecData: MqttDecodePubRec?) { }
+    func mqtt5(_ mqtt5: CocoaMQTT5, didReceiveMessage message: CocoaMQTT5Message, id: UInt16, publishData: MqttDecodePublish?) { }
+    func mqtt5(_ mqtt5: CocoaMQTT5, didSubscribeTopics success: NSDictionary, failed: [String], subAckData: MqttDecodeSubAck?) { }
+    func mqtt5(_ mqtt5: CocoaMQTT5, didUnsubscribeTopics topics: [String], unsubAckData: MqttDecodeUnsubAck?) { }
+    func mqtt5(_ mqtt5: CocoaMQTT5, didReceiveDisconnectReasonCode reasonCode: CocoaMQTTDISCONNECTReasonCode) { }
+    func mqtt5(_ mqtt5: CocoaMQTT5, didReceiveAuthReasonCode reasonCode: CocoaMQTTAUTHReasonCode) { }
+    func mqtt5DidPing(_ mqtt5: CocoaMQTT5) { }
+    func mqtt5DidReceivePong(_ mqtt5: CocoaMQTT5) { }
     
     
     
