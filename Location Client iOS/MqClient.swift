@@ -21,7 +21,7 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
 //    var authMethod: Int
     
     private var login: MqLogin?
-    private var authMethod: Int?
+//    private var authMethod: Int?
     
     private var view: ContentView?
     
@@ -95,6 +95,9 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
      
      For all authentication methods, first try to connect using MQTT v5. If the connection fails, try the connection
      with v3.1.1.
+     
+     This version rollback is automatic. If a v5 connection attempt calls the failure delegate, that delegate will then call
+     the v3.1.1 connection method.
      */
     func connectToBroker() {
         
@@ -111,39 +114,58 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
         }
         
         
-        // Need to detect auth method
-        // ...
+        // Determine authentication method and connect
+        if (login?.getUser() != "" && login?.getPass() != "") {         // Basic authentication
+            print("Basic authentication detected")
+            connectBasic()
+        }
+        else if (login?.getUser () != "" && login?.getPass() == "") {   // Username-only authentication
+            print("Username-only authentication detected")
+            connectUsername()
+        }
+        else if (login?.getUser () == "" && login?.getPass() == "") {   // Anonymous connection
+            print("Anonymous connection detected")
+            connectNoAuthentication()
+        }
+        else {
+            print("Invalid credential combination detected.")
+            view?.statusMsg = "ERROR: Invalid credential combination detected."
+        }
         
-        
-        // Connect based on detected auth method
-        
-//        switch authMethod {
-//        case 0:
-//            print("Attempting to connect with no authentication...")
-////            connectNoAuth()
-//            
-//            print("NOT IMPLEMENTED...")
-//        case 1:
-//            print("Attempting to connect with username and no password...")
-//            
-//            print("NOT IMPLEMENTED...")
-////            connectUsername()
-//        case 2:
-//            print("Attempting to connect with basic authentication...")
-//            connectBasic()
-//        default:
-//            print("Error: Unknown authentication method.")
-//        }
-        
-        
-        
-        // Testing
-        connectBasic()
         
     }
     
     
+    /**
+     Connect to the broker with no authentication
+     */
+    private func connectNoAuthentication() {
+        
+        view?.statusMsg = "Attempting to connect using a username and no password..."
+        
+        // Try first to connect with v5
+        // If v5 connect fails, its delegate will call v3.1.1 connect
+        _ = mqtt5!.connect()
+        
+    }
     
+    
+    /**
+     Connect to the broker with a username and no password.
+     */
+    private func connectUsername() {
+        
+        // Set credentials for username only
+        mqtt!.username = login!.getUser()
+        mqtt5!.username = login!.getUser()
+        
+        view?.statusMsg = "Attempting to connect using a username and no password..."
+        
+        // Try first to connect with v5
+        // If v5 connect fails, its delegate will call v3.1.1 connect
+        _ = mqtt5!.connect()
+        
+    }
     
     
     /**
@@ -163,27 +185,15 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
         // If v5 connect fails, its delegate will call v3.1.1 connect
         _ = mqtt5!.connect()
         
-        
-        
-        
-        
-//        print("Attempting to connect with v3.1.1 using basic authentication...")
-//        
-//        view?.statusMsg = "Attempting to connect with v3.1.1 using basic authentication..."
-        
-        // MQTT 3 connect
-        
-//        _ = mqtt!.connect()
-        
-        
     }
+    
+    
     
     // ----------------------------------------------------------------------
     // Initializing functions
     
     
     func setLogin(mqLogin: MqLogin) { login = mqLogin }
-    
     func setView(v: ContentView) { view = v }
     
     private func initializeMqtt3Client() throws {
@@ -330,9 +340,10 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
                     withString: "Test message from v5",
                     properties: publishProperties!
                 )
+                
             }
             else {
-                print("ERROR: Could not publish message. publishProperties is nil. Has publishProperties been initialized?")
+                print("ERROR: Could not publish message. publishProperties is nil. Has the publishProperties variable been initialized?")
             }
             
             
