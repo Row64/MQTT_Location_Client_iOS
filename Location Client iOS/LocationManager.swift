@@ -13,8 +13,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
     @Published var userLocation: CLLocationCoordinate2D?
     
-    // Controls the Timer loop for sending location updates at an interval
-    private var timerContinue: Bool = true
+    // Timer variables
+    private var timer: Timer?
+//    private var timerContinue: Bool = true
     
     
     override init() {
@@ -52,7 +53,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
      */
     func startLocationUpdates(useInterval: Bool = true, interval: Double = 5.0) {
         
-        timerContinue = true
+//        timerContinue = true
         
         // Request permissions to access location, if needed.
         locationManager.requestWhenInUseAuthorization()
@@ -69,11 +70,11 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         }
         else {
             
-            Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
+            timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) {timer in
                 
                 // Check if the loop can continue
                 // Loop can be invalidated by calling LocationManager's stopLocationUpdates() method
-                if (self.timerContinue == false) { timer.invalidate() }
+//                if (self.timerContinue == false) { timer.invalidate() }
                 
                 // Get a one-time location value
                 // Handle the value in the delegate
@@ -92,7 +93,11 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     // Stop receiving location updates
     func stopLocationUpdates() {
-        timerContinue = false
+        
+        timer?.invalidate()
+        
+//        timerContinue = false
+        
         locationManager.stopUpdatingLocation()
         print("Location updates stopped.")
     }
