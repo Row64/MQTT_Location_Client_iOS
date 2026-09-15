@@ -18,12 +18,14 @@ struct ContentView: View {
     
     // UI toggle trackers
     @State private var isPasswordVisible: Bool = false
-    @State private var toggleConnectBtn: Bool = true
-    @State private var toggleLocationBtn: Bool = true
+    @State var toggleConnectBtn: Bool = true
+    @State var toggleLocationBtn: Bool = true
+    @State var enableConnectBtn: Bool = true
+    @State var enableLocationBtn: Bool = false
     
     // MQTT objects
     private var login = MqLogin()
-    @State private var client = MqClient()
+    @State var client = MqClient()
     
     // Location object
     private var location = LocationManager()
@@ -123,63 +125,100 @@ struct ContentView: View {
             // Connect button
             Button {
                 
-                print("Connect button clicked") // For testing
-                
-                // Clear any existing credential data before submitting
-                // new inputs
-                login.clearCredentials()
-                
-                // Attempt to set the credentials
-                // Setting the port throws an exception if invalid
-                do {
-                    try login.setCredentials(
-                        inputHost: inputHost,
-                        inputPort: inputPort,
-                        inputUser: inputUser,
-                        inputPass: inputPass
-                        )
-                }
-                catch MqCredentialsError.missingRequired {
-                    statusMsg = "ERROR: Host and port are required. Additionally provide a username and password if your broker requires authentication."
-                    return
-                }
-                catch MqCredentialsError.badPort {
-                    statusMsg = "ERROR: Invalid port detected. Please input a valid port number within the range 1 to 65,535"
-                    return
-                }
-                catch {
-                    statusMsg = "ERROR: Unexpected credential error"
-                    return
+                if (toggleConnectBtn) {
+                    print("Connect button clicked") // For testing
+                    
+                    // Clear any existing credential data before submitting
+                    login.clearCredentials()
+                    
+                    // Attempt to set the credentials
+                    // Setting the port throws an exception if invalid
+                    do {
+                        try login.setCredentials(
+                            inputHost: inputHost,
+                            inputPort: inputPort,
+                            inputUser: inputUser,
+                            inputPass: inputPass
+                            )
+                    }
+                    catch MqCredentialsError.missingRequired {
+                        statusMsg = "ERROR: Host and port are required. Additionally provide a username and password if your broker requires authentication."
+                        return
+                    }
+                    catch MqCredentialsError.badPort {
+                        statusMsg = "ERROR: Invalid port detected. Please input a valid port number within the range 1 to 65,535"
+                        return
+                    }
+                    catch {
+                        statusMsg = "ERROR: Unexpected credential error"
+                        return
+
+                    }
+                    
+                    // Assign login to MQTT client
+                    client.setLogin(mqLogin: login)
+                    
+                    client.setView(v: self)
+                    
+                    
+                    // Attempt to establish a connection
+    //                statusMsg = "Attempting to connect..."
+                    client.connectToBroker()
+
+                    // toggle button?
+
 
                 }
-                
-                // Assign login to MQTT client
-                client.setLogin(mqLogin: login)
-                
-                client.setView(v: self)
-                
-//                client.initializeLogin(mqLogin: login)
-//                client.initializeMqtt3Client(login: login)
-//                client.initializeMqtt5Client(login: login)
-                
-                // Attempt to establish a connection
-//                statusMsg = "Attempting to connect..."
-                client.connectToBroker()
-                
-
-                // FOR TESTING
-                // This works
-//                _ = mqManager.mqtt.connect()
+                else {
+                    // For disconnect
+                    
+                    
+                    // Disconnect from broker
+                    client.disconnect()
+                    
+                    statusMsg = "Disconnected from the broker."
+                    
+                    // After successful disconnect, toggle the button
+                    // (maybe put in the delegate, not here?)
+//                    toggleConnectBtn.toggle()
+                    
+                    // ...
+                }
                 
                 
                 
-            } label: {
-                Text("Connect")
-                    .padding(.all)
-                    .background(.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(16)
+                
+                
             }
+            label: {
+//                Text("Connect")
+//                    .padding(.all)
+//                    .background(.blue)
+//                    .foregroundColor(.white)
+//                    .cornerRadius(16)
+                
+                
+                
+                // Connect
+                if (toggleConnectBtn) {
+                    Text("Connect")
+                        .padding(.all)
+                        .background(.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
+                }
+                // Disconnect
+                else {
+                    Text("Disconnect")
+                        .padding(.all)
+                        .background(.red)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
+                }
+                
+                
+            }
+//            .disabled(enableConnectBtn)
             
             
             

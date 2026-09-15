@@ -113,6 +113,8 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
             return
         }
         
+        // Temporarily disable the view's Connect button while the connection is being attempted
+        view?.enableConnectBtn = false
         
         // Determine authentication method and connect
         if (login?.getUser() != "" && login?.getPass() != "") {         // Basic authentication
@@ -187,6 +189,42 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
         
     }
     
+    // ----------------------------------------------------------------------
+    // DISCONNECT METHODS
+    
+    
+    func disconnect() {
+        mqtt?.disconnect()
+        mqtt5?.disconnect()
+    }
+    
+    
+    // ----------------------------------------------------------------------
+    // PUBLISH METHODS
+    
+    
+    func sendMessage(topic: String, msg: String, clientVersion: Int) {
+        
+        // Send message based on which client is connected
+//        if (mqtt5!.connState) {
+//            
+//        }
+        
+        
+        
+//        mqtt?.connState.rawValue
+        
+        
+        
+        // TESTING
+        print(mqtt5?.connState.rawValue)
+        
+        
+        // Send message based on client version
+        // ...
+        
+        
+    }
     
     
     // ----------------------------------------------------------------------
@@ -274,6 +312,12 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
             
             view?.statusMsg = "Successfully connected to the broker with v3.1.1"
             
+            // Update the view's buttons
+            view?.enableConnectBtn = true
+            view?.toggleConnectBtn = false
+            view?.enableLocationBtn = true
+            view?.toggleLocationBtn = true
+            
             // FOR TESTING
             print("Attempting to send test message...")
             mqtt.publish("TEST", withString: "Test message from v3.1.1")
@@ -281,6 +325,12 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
         else {
             print("v3 ack rejected")
             view?.statusMsg = "Failed to connect to broker.\nack: \(ack)"
+            
+            // Update the view's Connect button state
+            view?.enableConnectBtn = true
+            view?.toggleConnectBtn = true
+            view?.enableLocationBtn = false
+            view?.toggleLocationBtn = true
         }
     }
     
@@ -298,6 +348,16 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     
     // For errors during connection attempt
     func mqttDidDisconnect(_ mqtt: CocoaMQTT, withError err: Error?) {
+        
+//        view?.statusMsg = "Disconnected from the broker"
+        
+        print("Disconnected from the broker")
+        
+        // Update the UI
+        view?.toggleConnectBtn = true
+        view?.enableConnectBtn = true
+        view?.toggleLocationBtn = true
+        view?.enableLocationBtn = false
 
 //        view?.statusMsg += "Error encountered while attempting to connect."
 //        
@@ -330,6 +390,12 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
             print("v5 ack accepted")
             
             view?.statusMsg = "Successfully connected to the broker with v5"
+            
+            // Update the view's buttons
+            view?.enableConnectBtn = true
+            view?.toggleConnectBtn = false
+            view?.enableLocationBtn = true
+            view?.toggleLocationBtn = true
             
             // FOR TESTING
             view?.statusMsg += "Attempting to send a test message..."
@@ -365,6 +431,16 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     
     // For errors
     func mqtt5DidDisconnect(_ mqtt5: CocoaMQTT5, withError err: (any Error)?) {
+        
+//        view?.statusMsg = "Disconnected from broker."
+        
+        print("Disconnected from the broker")
+        
+        // Update the UI
+        view?.toggleConnectBtn = true
+        view?.enableConnectBtn = true
+        view?.toggleLocationBtn = true
+        view?.enableLocationBtn = false
 
 //        view?.statusMsg = "Error encountered while attempting to connect with v5."
 //        

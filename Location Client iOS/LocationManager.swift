@@ -11,7 +11,7 @@ internal import Combine
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     private let locationManager = CLLocationManager()
-    @Published var userLocation: CLLocationCoordinate2D?
+    var userLocation: CLLocationCoordinate2D?
     
     // Timer variables
     private var timer: Timer?
@@ -115,6 +115,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             DispatchQueue.main.async {
                 self.userLocation = location.coordinate
                 print("User location: \(location.coordinate.latitude), \(location.coordinate.longitude)")
+                
+                // Send location
+                view?.client.
             }
         }
         
