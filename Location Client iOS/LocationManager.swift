@@ -57,7 +57,6 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         // Request permissions to access location, if needed.
         locationManager.requestWhenInUseAuthorization()
         
-        
         // FOR TESTING
         var timerLooped: Int = 0
         
@@ -94,7 +93,8 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     // Stop receiving location updates
     func stopLocationUpdates() {
         timerContinue = false
-        locationManager.stopUpdatingLocation() // If using interval and not startUpdatingLocation(), does calling this cause an error? ************************
+        locationManager.stopUpdatingLocation()
+        print("Location updates stopped.")
     }
     
     
@@ -112,9 +112,6 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 print("User location: \(location.coordinate.latitude), \(location.coordinate.longitude)")
             }
         }
-        
-        
-//        print("\(locations.last!.coordinate.latitude), \(locations.last!.coordinate.longitude)")
         
     }
     

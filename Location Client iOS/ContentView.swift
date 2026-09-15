@@ -16,18 +16,17 @@ struct ContentView: View {
     @State private var inputUser: String = ""
     @State private var inputPass: String = ""
     
-    @State private var isPasswordVisible = false
-    
+    // UI toggle trackers
+    @State private var isPasswordVisible: Bool = false
+    @State private var toggleConnectBtn: Bool = true
+    @State private var toggleLocationBtn: Bool = true
     
     // MQTT objects
     private var login = MqLogin()
     @State private var client = MqClient()
-
     
     // Location object
     private var location = LocationManager()
-//    @State private var location: LocationManager
-    
     
     // Status message variable
     @State public var statusMsg: String = "Status messages appear here..."
@@ -190,16 +189,44 @@ struct ContentView: View {
             
             // Location updates button
             Button {
-//                location = LocationManager()
-                location.startLocationUpdates()
+                
+//                location.startLocationUpdates()
+                
+                if (toggleLocationBtn == true) {
+                    location.startLocationUpdates()
+                    toggleLocationBtn.toggle()
+                }
+                else {
+                    location.stopLocationUpdates()
+                    toggleLocationBtn.toggle()
+                }
                 
             } label: {
-                Text("Send location updates")
-                    .padding(.all)
-                    .background(.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(16)
+//                Text("Send location updates")
+//                    .padding(.all)
+//                    .background(.blue)
+//                    .foregroundColor(.white)
+//                    .cornerRadius(16)
+                
+                if (toggleLocationBtn == true) {
+                    Text("Send location updates")
+                        .padding(.all)
+                        .background(.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
                 }
+                else {
+                    Text("Stop location updates")
+                        .padding(.all)
+                        .background(.red)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
+                }
+                
+                
+                
+                
+            }
             
             
             
