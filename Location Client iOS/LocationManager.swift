@@ -13,6 +13,10 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let locationManager = CLLocationManager()
     @Published var userLocation: CLLocationCoordinate2D?
     
+    // Controls the Timer loop for sending location updates at an interval
+    private var timerContinue: Bool = true
+    
+    
     override init() {
         super.init()
         
@@ -22,51 +26,114 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         // Desired accuracy level
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         
-        // Request permission to use location services
-        // requestWhenInUseAuthorization is for foreground location only
-        locationManager.requestWhenInUseAuthorization()                     // Request only when needed, not when initialized? ***********
+    }
+    
+    
+    /**
+     This method routinely retrieves the user's current location using one of two strategies.
+     
+     This method can retrieve the user's location using the locationManager.startUpdatingLocation() method,
+     which only sends updates when the device's location changes. If the location does not change, the method
+     does not send an update.
+     
+     This method can alternatively send regular updates at a specified interval, regardless of whether the user
+     moves or remains stationary. This is accomplished by wrapping the locationManager.requestLocaiton()
+     method, which retrieves a one-time location update, in a Timer, which loops at the specified interval rate
+     (in seconds).
+     
+     Once started, the Timer loop can be ended by calling the stopLocaitonUpdates() method, which simply
+     toggles the value of timerContinue to false.
+     
+     Regardless of which strategy is used, the queried location (or error) is handled in the CLLocationManager's
+     delegate methods.
+     
+     This method uses default values that configures the query to loop at an interval, every 5 seconds. These
+     defaults can be overwritten when the method is called, if needed.
+     */
+    func startLocationUpdates(useInterval: Bool = true, interval: Double = 5.0) {
         
-        // Start updating location
-//        locationManager.startUpdatingLocation()
+        timerContinue = true
+        
+        // Request permissions to access location, if needed.
+        locationManager.requestWhenInUseAuthorization()
+        
+        
+        // FOR TESTING
+        var timerLooped: Int = 0
+        
+        // Send location updates either using the default startUpdatingLocation() method,
+        // or by looping at an interval.
+        if (!useInterval) {
+            // Only updates when the user's location changes
+            // If location does not change, a new update is NOT sent.
+            locationManager.startUpdatingLocation()
+        }
+        else {
+            
+            Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
+                
+                // Check if the loop can continue
+                // Loop can be invalidated by calling LocationManager's stopLocationUpdates() method
+                if (self.timerContinue == false) { timer.invalidate() }
+                
+                // Get a one-time location value
+                // Handle the value in the delegate
+                self.locationManager.requestLocation()
+                
+                // FOR TESTING
+                timerLooped += 1
+                print("Timer completed loop \(timerLooped)")
+                
+            }
+            
+        }
+        
     }
     
-    
-    // Start receiving location updates
-    func startLocationUpdates() {
-        locationManager.startUpdatingLocation()
-    }
     
     // Stop receiving location updates
-    func stopLocationUpdates() { locationManager.stopUpdatingLocation() }
+    func stopLocationUpdates() {
+        timerContinue = false
+        locationManager.stopUpdatingLocation() // If using interval and not startUpdatingLocation(), does calling this cause an error? ************************
+    }
     
     
     
     // ----------------------------------------------------------------------
     // Location delegates
     
-//    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-//        if let location = locations.last {
-//            // Access the current location
-//            let latitude = location.coordinate.latitude
-//            let longitude = location.coordinate.longitude
-//            
-//            // For testing
-//            print("Latitude: \(latitude), Longitude: \(longitude)")
-//        }
-//    }
     
+    // For a successful location update
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        
         if let location = locations.last {
             DispatchQueue.main.async {
                 self.userLocation = location.coordinate
                 print("User location: \(location.coordinate.latitude), \(location.coordinate.longitude)")
             }
         }
+        
+        
+//        print("\(locations.last!.coordinate.latitude), \(locations.last!.coordinate.longitude)")
+        
     }
     
     
+    // For when the location manager is unable to retrieve a location value
+    // https://developer.apple.com/documentation/corelocation/cllocationmanagerdelegate/locationmanager(_:didfailwitherror:)
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("Error when retrieving user location")
         print("Error: \(error.localizedDescription)")
+    }
+    
+    
+    // For when authorization status changes.
+    // Informs the app whether it can access the user's location.
+    // Gets called on initialization and when an authorization changes.
+    // https://developer.apple.com/documentation/corelocation/cllocationmanagerdelegate/locationmanagerdidchangeauthorization(_:)
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        print("Reached locationManagerDidChangeAuthorization delegate")
+        print("\(manager.authorizationStatus)")
     }
     
     
