@@ -406,6 +406,8 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
         
 //        view?.statusMsg = "Disconnected from the broker"
         
+        view?.enableFormFields = true
+        
         connectedVersion = 0
         
         print("Disconnected from the broker")
@@ -492,6 +494,11 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     func mqtt5DidDisconnect(_ mqtt5: CocoaMQTT5, withError err: (any Error)?) {
         
 //        view?.statusMsg = "Disconnected from broker."
+        
+        if (connectedVersion == 5) {
+            view?.enableFormFields = true
+        }
+        
         
         print("Disconnected from the broker")
         

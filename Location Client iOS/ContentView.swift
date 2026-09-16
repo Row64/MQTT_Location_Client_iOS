@@ -22,6 +22,7 @@ struct ContentView: View {
     @State var toggleLocationBtn: Bool = true
     @State var enableConnectBtn: Bool = true
     @State var enableLocationBtn: Bool = false
+    @State var enableFormFields: Bool = true
     
     // MQTT objects
     private var login = MqLogin()
@@ -50,29 +51,27 @@ struct ContentView: View {
                     "Host",
                     text: $inputHost
                 )
-//                .focused($hostFieldIsFocused)
-                .onSubmit {
-//                    validate(name: inputHost)
-                    print(inputHost)
-                }
+                .onSubmit { }
                 .textInputAutocapitalization(.never)
                 .disableAutocorrection(true)
-                .border(.secondary)
-            
+//                .border(.secondary)
+                .textFieldStyle(.roundedBorder)
+                .foregroundStyle(enableFormFields ? .blue: .gray)
+                .disabled(!enableFormFields)
+                            
             
             // Port field
             TextField(
                     "Port",
                     text: $inputPort
                 )
-//                .focused($hostFieldIsFocused)
-                .onSubmit {
-//                    validate(name: inputHost)
-                    print(inputPort)
-                }
+                .onSubmit { }
                 .textInputAutocapitalization(.never)
                 .disableAutocorrection(true)
-                .border(.secondary)
+//                .border(.secondary)
+                .textFieldStyle(.roundedBorder)
+                .foregroundStyle(enableFormFields ? .blue: .gray)
+                .disabled(!enableFormFields)
                 
             
             
@@ -81,14 +80,13 @@ struct ContentView: View {
                     "Username",
                     text: $inputUser
                 )
-//                .focused($hostFieldIsFocused)
-                .onSubmit {
-//                    validate(name: inputHost)
-                    print(inputUser)
-                }
+                .onSubmit { }
                 .textInputAutocapitalization(.never)
                 .disableAutocorrection(true)
-                .border(.secondary)
+//                .border(.secondary)
+                .textFieldStyle(.roundedBorder)
+                .foregroundStyle(enableFormFields ? .blue: .gray)
+                .disabled(!enableFormFields)
             
             
             // Password field
@@ -97,14 +95,11 @@ struct ContentView: View {
                     "Password",
                     text: $inputPass
                 )
-                .onSubmit {
-                    
-
-                    // ...
-                    
-                    
-                }
-                .border(.secondary)
+                .onSubmit { }
+//                .border(.secondary)
+                .textFieldStyle(.roundedBorder)
+                .foregroundStyle(enableFormFields ? .blue: .gray)
+                .disabled(!enableFormFields)
                 
                 // Password reveal button
                 Button {
@@ -114,11 +109,13 @@ struct ContentView: View {
                         .foregroundColor(.gray)
                     }
                 
+                
                 }
             
             // Password visibility
             if isPasswordVisible {
                 TextField("Reveal password", text: $inputPass)
+                    .foregroundStyle(.gray)
             } else {
 //                SecureField("Reveal password", text: $inputPass)
             }
@@ -132,6 +129,9 @@ struct ContentView: View {
                     
                     // Clear any existing credential data before submitting
                     login.clearCredentials()
+                    
+                    // Disable login fields
+                    enableFormFields = false
                     
                     // Attempt to set the credentials
                     // Setting the port throws an exception if invalid
