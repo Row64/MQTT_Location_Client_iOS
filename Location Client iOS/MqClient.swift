@@ -25,6 +25,8 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     
     private var view: ContentView?
     
+    private var connectedVersion: Int = 0
+    
     // MQTT client library objects
 //    let clientID: String
 //    var connectProperties: MqttConnectProperties
@@ -38,10 +40,6 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     private var publishProperties: MqttPublishProperties?   // For v5 publishing (not relevant for v3)
     var mqtt: CocoaMQTT?
     var mqtt5: CocoaMQTT5?
-    
-    init() {
-        
-    }
     
     
     /**
@@ -203,7 +201,58 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     // PUBLISH METHODS
     
     
-    func sendMessage(topic: String, msg: String, clientVersion: Int) {
+    /**
+     This method sends a message based on the connected MQTT client.
+     */
+    func sendMessage(topic: String, msg: String) {
+        
+        switch connectedVersion {
+        case 3:
+            
+            // TESTING
+            print("Attempting to publish message. Detected connected version 3.1.1")
+            
+            // Publish - MQTT 3.1.1
+            if (mqtt != nil) {
+                mqtt?.publish(
+                    topic,
+                    withString: msg
+                    )
+            }
+            else {
+                view?.statusMsg = "Cannot send message (v3.1.1). MQTT client has not been initialized. Have you logged in?"
+            }
+        case 5:
+            
+            // TESTING
+            print("Attempting to publish message. Detected connected version 5")
+            
+            // Publish - MQTT 5
+            if (mqtt5 != nil && publishProperties != nil) {
+                mqtt5?.publish(
+                    topic,
+                    withString: msg,
+                    properties: publishProperties!
+                )
+            }
+            else {
+                view?.statusMsg = "Cannot send message (v5). MQTT client has not been initialized. Have you logged in?"
+            }
+        case 0:
+            // Not connected
+            view?.statusMsg = "Failed to send message. Client is not connected."
+            print("Failed to send message. Client is not connected.")
+        default:
+            // Error: Unrecognized value
+            view?.statusMsg = "Failed to send message. Received unexpected MQTT version value."
+            print("ERROR: Unrecognized MQTT version value. Did not send message.")
+            
+        }
+        
+        
+        
+        
+        
         
         // Send message based on which client is connected
 //        if (mqtt5!.connState) {
@@ -217,7 +266,7 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
         
         
         // TESTING
-        print(mqtt5?.connState.rawValue)
+//        print(mqtt5?.connState.rawValue)
         
         
         // Send message based on client version
@@ -232,6 +281,7 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     
     
     func setLogin(mqLogin: MqLogin) { login = mqLogin }
+    
     func setView(v: ContentView) { view = v }
     
     private func initializeMqtt3Client() throws {
@@ -310,6 +360,8 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
         if ack == .accept {
             print("v3 ack accepted")
             
+            connectedVersion = 3
+            
             view?.statusMsg = "Successfully connected to the broker with v3.1.1"
             
             // Update the view's buttons
@@ -324,6 +376,9 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
         }
         else {
             print("v3 ack rejected")
+            
+            connectedVersion = 0
+            
             view?.statusMsg = "Failed to connect to broker.\nack: \(ack)"
             
             // Update the view's Connect button state
@@ -350,6 +405,8 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     func mqttDidDisconnect(_ mqtt: CocoaMQTT, withError err: Error?) {
         
 //        view?.statusMsg = "Disconnected from the broker"
+        
+        connectedVersion = 0
         
         print("Disconnected from the broker")
         
@@ -389,6 +446,8 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
         if ack == .success {
             print("v5 ack accepted")
             
+            connectedVersion = 5
+            
             view?.statusMsg = "Successfully connected to the broker with v5"
             
             // Update the view's buttons
@@ -412,12 +471,12 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
                 print("ERROR: Could not publish message. publishProperties is nil. Has the publishProperties variable been initialized?")
             }
             
-            
-            
         }
         else {
             print("v5 ack rejected")
             view?.statusMsg = "Failed to connect using v5.\nack: \(ack)"
+            
+            connectedVersion = 0
             
             // Attempt to connect using v3.1.1
             view?.statusMsg += "\n\nAttempting to connect using v3.1.1..."
@@ -435,6 +494,8 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
 //        view?.statusMsg = "Disconnected from broker."
         
         print("Disconnected from the broker")
+        
+        connectedVersion = 0
         
         // Update the UI
         view?.toggleConnectBtn = true

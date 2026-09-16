@@ -29,12 +29,14 @@ struct ContentView: View {
     
     // Location object
     private var location = LocationManager()
+//    @State private var location: LocationManager
     
     // Status message variable
     @State public var statusMsg: String = "Status messages appear here..."
     
     
     var body: some View {
+        
         Form {
             
             Text("Row64 Location Client")
@@ -158,6 +160,7 @@ struct ContentView: View {
                     // Assign login to MQTT client
                     client.setLogin(mqLogin: login)
                     
+                    // Initialize this view in the client class
                     client.setView(v: self)
                     
                     
@@ -230,6 +233,16 @@ struct ContentView: View {
             Button {
                 
 //                location.startLocationUpdates()
+                
+                /**
+                 Initialize this view in the location class so that it can send location updates
+                 to the MQTT broker using this view's client instance.
+                 
+                 startLocationUpdates() gets location and returns location to its delegate, which then
+                 references view.client to access the client's send method.
+                 */
+                location.setView(v: self)
+                
                 
                 if (toggleLocationBtn == true) {
                     location.startLocationUpdates()

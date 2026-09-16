@@ -17,6 +17,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private var timer: Timer?
 //    private var timerContinue: Bool = true
     
+    // View
+    private var view: ContentView?
+    
     
     override init() {
         super.init()
@@ -26,7 +29,6 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         
         // Desired accuracy level
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        
     }
     
     
@@ -117,7 +119,17 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 print("User location: \(location.coordinate.latitude), \(location.coordinate.longitude)")
                 
                 // Send location
-                view?.client.
+                if (self.view != nil) {
+                    self.view?.client.sendMessage(
+                        topic: "location update",
+                        msg: "\(location.coordinate.latitude), \(location.coordinate.longitude)"
+                    )
+                }
+                else {
+                    print("ERROR: Cannot send message. View is not initialized.")
+                }
+                
+                
             }
         }
         
@@ -142,7 +154,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     
     
-    
     // ----------------------------------------------------------------------
+    // Initializing functions
+    
+    func setView(v: ContentView) { view = v }
     
 }
