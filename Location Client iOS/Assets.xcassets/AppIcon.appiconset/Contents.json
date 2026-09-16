@@ -1,6 +1,7 @@
 {
   "images" : [
     {
+      "filename" : "R64_MQTT_App_Icon_iOS.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -12,6 +13,7 @@
           "value" : "dark"
         }
       ],
+      "filename" : "R64_MQTT_App_Icon_iOS 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -23,6 +25,7 @@
           "value" : "tinted"
         }
       ],
+      "filename" : "R64_MQTT_App_Icon_iOS 2.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
