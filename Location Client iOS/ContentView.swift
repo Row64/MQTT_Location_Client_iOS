@@ -145,14 +145,17 @@ struct ContentView: View {
                     }
                     catch MqCredentialsError.missingRequired {
                         statusMsg = "ERROR: Host and port are required. Additionally provide a username and password if your broker requires authentication."
+                        enableFormFields = true
                         return
                     }
                     catch MqCredentialsError.badPort {
                         statusMsg = "ERROR: Invalid port detected. Please input a valid port number within the range 1 to 65,535"
+                        enableFormFields = true
                         return
                     }
                     catch {
                         statusMsg = "ERROR: Unexpected credential error"
+                        enableFormFields = true
                         return
 
                     }

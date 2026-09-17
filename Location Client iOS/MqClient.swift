@@ -114,6 +114,8 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
         // Temporarily disable the view's Connect button while the connection is being attempted
         view?.enableConnectBtn = false
         
+        view?.statusMsg = "Attempting to connect..."
+        
         // Determine authentication method and connect
         if (login?.getUser() != "" && login?.getPass() != "") {         // Basic authentication
             print("Basic authentication detected")
@@ -141,7 +143,7 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
      */
     private func connectNoAuthentication() {
         
-        view?.statusMsg = "Attempting to connect using a username and no password..."
+//        view?.statusMsg = "Attempting to connect..."
         
         // Try first to connect with v5
         // If v5 connect fails, its delegate will call v3.1.1 connect
@@ -159,7 +161,7 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
         mqtt!.username = login!.getUser()
         mqtt5!.username = login!.getUser()
         
-        view?.statusMsg = "Attempting to connect using a username and no password..."
+//        view?.statusMsg = "Attempting to connect..."
         
         // Try first to connect with v5
         // If v5 connect fails, its delegate will call v3.1.1 connect
@@ -179,7 +181,7 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
         mqtt5!.username = login!.getUser()
         mqtt5!.password = login!.getPass()
         
-        view?.statusMsg = "Attempting to connect using basic authentication..."
+//        view?.statusMsg = "Attempting to connect..."
         
         // Try first to connect with v5
         // If v5 connect fails, its delegate will call v3.1.1 connect
@@ -379,7 +381,7 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
             
             connectedVersion = 0
             
-            view?.statusMsg = "Failed to connect to broker.\nack: \(ack)"
+            view?.statusMsg += "\n\nFailed to connect to broker (v3.1.1)\n\nack: \(ack)"
             
             // Update the view's Connect button state
             view?.enableConnectBtn = true
@@ -403,16 +405,38 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     
     // For errors during connection attempt
     func mqttDidDisconnect(_ mqtt: CocoaMQTT, withError err: Error?) {
+
         
-//        view?.statusMsg = "Disconnected from the broker"
+//        if (connectedVersion == 0) {
+//            view?.statusMsg = "Disconnected from the broker"
+//            if (err != nil) {
+//                view?.statusMsg += "\n\n\(err!)"
+//            }
+//        }
+//        else {
+//            view?.statusMsg += "Disconnected from the broker"
+//            connectedVersion = 0
+//        }
         
+        
+        view?.statusMsg += "\n\nDisconnected from the broker (v3.1.1)"
+        
+        if (err != nil) {
+            view?.statusMsg += "\n\n\(err!)"
+        }
+        
+        
+        
+        print("Disconnected from the broker (v3.1.1)")
+        
+        // Update UI form fields and status message
         view?.enableFormFields = true
+//        view?.statusMsg += "\n\nDisconnected from the broker"
+//        if (connectedVersion == 0 && err != nil) {
+//            view?.statusMsg += "\n\n\(err!)"
+//        }
         
-        connectedVersion = 0
-        
-        print("Disconnected from the broker")
-        
-        // Update the UI
+        // Update UI buttons
         view?.toggleConnectBtn = true
         view?.enableConnectBtn = true
         view?.toggleLocationBtn = true
@@ -476,12 +500,12 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
         }
         else {
             print("v5 ack rejected")
-            view?.statusMsg = "Failed to connect using v5.\nack: \(ack)"
+            view?.statusMsg = "Failed to connect using v5\n\nack: \(ack)"
             
             connectedVersion = 0
             
             // Attempt to connect using v3.1.1
-            view?.statusMsg += "\n\nAttempting to connect using v3.1.1..."
+            view?.statusMsg += "\n\nWill attempt to connect using v3.1.1..."
             _ = mqtt!.connect()
             
             
@@ -493,16 +517,38 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     // For errors
     func mqtt5DidDisconnect(_ mqtt5: CocoaMQTT5, withError err: (any Error)?) {
         
-//        view?.statusMsg = "Disconnected from broker."
+
+//        if (connectedVersion == 0) {
+//            view?.statusMsg = "Disconnected from the broker"
+//            if (err != nil) {
+//                view?.statusMsg += "\n\n\(err!)"
+//            }
+//        }
+//        else {
+//            view?.statusMsg += "Disconnected from the broker"
+//            connectedVersion = 0
+//        }
         
-        if (connectedVersion == 5) {
-            view?.enableFormFields = true
+        
+        view?.statusMsg += "\n\nDisconnected from the broker (v5)"
+        
+        if (err != nil) {
+            view?.statusMsg += "\n\n\(err!)"
         }
         
         
-        print("Disconnected from the broker")
+        view?.enableFormFields = true
         
-        connectedVersion = 0
+        print("Disconnected from the broker (v5)")
+        
+//        connectedVersion = 0
+        
+        // Update UI form fields and status message
+        view?.enableFormFields = true
+//        view?.statusMsg += "\n\nDisconnected from the broker"
+//        if (connectedVersion == 0 && err != nil) {
+//            view?.statusMsg += "\n\n\(err!)"
+//        }
         
         // Update the UI
         view?.toggleConnectBtn = true
