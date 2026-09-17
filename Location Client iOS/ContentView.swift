@@ -133,6 +133,9 @@ struct ContentView: View {
                     // Disable login fields
                     enableFormFields = false
                     
+                    // Disable connect button
+                    enableConnectBtn = false
+                    
                     // Attempt to set the credentials
                     // Setting the port throws an exception if invalid
                     do {
@@ -146,16 +149,19 @@ struct ContentView: View {
                     catch MqCredentialsError.missingRequired {
                         statusMsg = "ERROR: Host and port are required. Additionally provide a username and password if your broker requires authentication."
                         enableFormFields = true
+                        enableConnectBtn = true
                         return
                     }
                     catch MqCredentialsError.badPort {
                         statusMsg = "ERROR: Invalid port detected. Please input a valid port number within the range 1 to 65,535"
                         enableFormFields = true
+                        enableConnectBtn = true
                         return
                     }
                     catch {
                         statusMsg = "ERROR: Unexpected credential error"
                         enableFormFields = true
+                        enableConnectBtn = true
                         return
 
                     }
@@ -178,11 +184,13 @@ struct ContentView: View {
                 else {
                     // For disconnect
                     
+                    // Stop sending location updates
+                    location.stopLocationUpdates()
                     
                     // Disconnect from broker
                     client.disconnect()
                     
-                    statusMsg = "Disconnected from the broker."
+//                    statusMsg = "Disconnected from the broker."
                     
                     // After successful disconnect, toggle the button
                     // (maybe put in the delegate, not here?)
@@ -197,34 +205,42 @@ struct ContentView: View {
                 
             }
             label: {
-//                Text("Connect")
-//                    .padding(.all)
-//                    .background(.blue)
-//                    .foregroundColor(.white)
-//                    .cornerRadius(16)
-                
-                
-                
-                // Connect
-                if (toggleConnectBtn) {
+                // Connect, enabled
+                if (toggleConnectBtn && enableConnectBtn) {
                     Text("Connect")
                         .padding(.all)
                         .background(.blue)
                         .foregroundColor(.white)
                         .cornerRadius(16)
                 }
-                // Disconnect
-                else {
+                // Connect, disabled
+                else if (toggleConnectBtn && !enableConnectBtn) {
+                    Text("Connect")
+                        .padding(.all)
+                        .background(.gray)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
+                }
+                // Disconnect, enabled
+                else if (!toggleConnectBtn && enableConnectBtn) {
                     Text("Disconnect")
                         .padding(.all)
                         .background(.red)
                         .foregroundColor(.white)
                         .cornerRadius(16)
                 }
+                // Disconnect, disabled
+                else if (!toggleConnectBtn && !enableConnectBtn) {
+                    Text("Disconnect")
+                        .padding(.all)
+                        .background(.gray)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
+                }
                 
                 
             }
-//            .disabled(enableConnectBtn)
+            .disabled(!enableConnectBtn)
             
             
             
@@ -263,17 +279,35 @@ struct ContentView: View {
 //                    .foregroundColor(.white)
 //                    .cornerRadius(16)
                 
-                if (toggleLocationBtn == true) {
+                // Send location, enabled
+                if (toggleLocationBtn && enableLocationBtn) {
                     Text("Send location updates")
                         .padding(.all)
                         .background(.blue)
                         .foregroundColor(.white)
                         .cornerRadius(16)
                 }
-                else {
+                // Send location, disabled
+                else if (toggleLocationBtn && !enableLocationBtn) {
+                    Text("Send location updates")
+                        .padding(.all)
+                        .background(.gray)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
+                }
+                // Stop sending location, enabled
+                else if (!toggleLocationBtn && enableLocationBtn) {
                     Text("Stop location updates")
                         .padding(.all)
                         .background(.red)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
+                }
+                // Stop sending location, disabled
+                else if (!toggleLocationBtn && !enableLocationBtn){
+                    Text("Stop location updates")
+                        .padding(.all)
+                        .background(.gray)
                         .foregroundColor(.white)
                         .cornerRadius(16)
                 }
@@ -282,6 +316,7 @@ struct ContentView: View {
                 
                 
             }
+            .disabled(!enableLocationBtn)
             
             
             

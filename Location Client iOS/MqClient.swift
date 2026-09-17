@@ -391,17 +391,23 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
         }
     }
     
+    
     // For when a message is published
     func mqtt(_ mqtt: CocoaMQTT, didPublishMessage message: CocoaMQTTMessage, id: UInt16) {
-        print("Message published: \(message.string!.description), id: \(id)")
-        view?.statusMsg = "Published message:\n\tMessage:\(message.string!.description)\n\tID: \(id)"
+        print("Message published:\n\(message.string!.description)\n\nid:\n\(id)")
+        view?.statusMsg = "Message published\n\nid: \(id)\n\ntopic:\n\(message.topic)\n\nmessage:\n\(message.string!.description)"
+        
+        
+//        view?.statusMsg = "Message published:\n\(message.string!.description)\n\nid: \(id)"
     }
+    
     
     // For receiving messages
     func mqtt(_ mqtt: CocoaMQTT, didPublishAck id: UInt16) {
         print("id: \(id)")
         print("Message received")
     }
+    
     
     // For errors during connection attempt
     func mqttDidDisconnect(_ mqtt: CocoaMQTT, withError err: Error?) {
@@ -431,6 +437,7 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
         
         // Update UI form fields and status message
         view?.enableFormFields = true
+        
 //        view?.statusMsg += "\n\nDisconnected from the broker"
 //        if (connectedVersion == 0 && err != nil) {
 //            view?.statusMsg += "\n\n\(err!)"
@@ -569,7 +576,9 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
     // For publishing messages
     func mqtt5(_ mqtt5: CocoaMQTT5, didPublishMessage message: CocoaMQTT5Message, id: UInt16) {
         print("Message published: \(message.string!.description), id: \(id)")
-        view?.statusMsg = "Published message:\n\tMessage:\(message.string!.description)\n\tID: \(id)"
+        view?.statusMsg = "Message published\n\nid: \(id)\n\ntopic:\n\(message.topic)\n\nmessage:\n\(message.string!.description)"
+        
+//        view?.statusMsg = "Message published:\n\(message.string!.description)\n\nid: \(id)"
     }
     
     

@@ -121,7 +121,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 // Send location
                 if (self.view != nil) {
                     self.view?.client.sendMessage(
-                        topic: "location update",
+                        topic: "R64_LOCATION_UPDATE",
                         msg: "\(location.coordinate.latitude), \(location.coordinate.longitude)"
                     )
                 }
