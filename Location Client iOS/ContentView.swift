@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CocoaMQTT
 
 struct ContentView: View {
     
@@ -15,53 +16,55 @@ struct ContentView: View {
     @State private var inputUser: String = ""
     @State private var inputPass: String = ""
     
-    @State private var isPasswordVisible = false
+    // UI toggle trackers
+    @State private var isPasswordVisible: Bool = false
+    @State var toggleConnectBtn: Bool = true
+    @State var toggleLocationBtn: Bool = true
+    @State var enableConnectBtn: Bool = true
+    @State var enableLocationBtn: Bool = false
+    @State var enableFormFields: Bool = true
     
     // MQTT objects
     private var login = MqLogin()
+    @State var client = MqClient()
     
+    // Location object
+    private var location = LocationManager()
     
-    // ...
-//    @FocusState private var hostFieldIsFocused: Bool = false
+    // Status message variable
+    @State public var statusMsg: String = "Status messages appear here..."
     
     
     var body: some View {
+        
         Form {
             
             Text("Row64 Location Client")
-            
-            // Text fields
-            // https://developer.apple.com/documentation/swiftui/textfield
-            
             
             // Host field
             TextField(
                     "Host",
                     text: $inputHost
                 )
-//                .focused($hostFieldIsFocused)
-                .onSubmit {
-//                    validate(name: inputHost)
-                    print(inputHost)
-                }
+                .onSubmit { }
                 .textInputAutocapitalization(.never)
                 .disableAutocorrection(true)
-                .border(.secondary)
-            
+                .textFieldStyle(.roundedBorder)
+                .foregroundStyle(enableFormFields ? .blue: .gray)
+                .disabled(!enableFormFields)
+                            
             
             // Port field
             TextField(
                     "Port",
                     text: $inputPort
                 )
-//                .focused($hostFieldIsFocused)
-                .onSubmit {
-//                    validate(name: inputHost)
-                    print(inputPort)
-                }
+                .onSubmit { }
                 .textInputAutocapitalization(.never)
                 .disableAutocorrection(true)
-                .border(.secondary)
+                .textFieldStyle(.roundedBorder)
+                .foregroundStyle(enableFormFields ? .blue: .gray)
+                .disabled(!enableFormFields)
                 
             
             
@@ -70,14 +73,12 @@ struct ContentView: View {
                     "Username",
                     text: $inputUser
                 )
-//                .focused($hostFieldIsFocused)
-                .onSubmit {
-//                    validate(name: inputHost)
-                    print(inputUser)
-                }
+                .onSubmit { }
                 .textInputAutocapitalization(.never)
                 .disableAutocorrection(true)
-                .border(.secondary)
+                .textFieldStyle(.roundedBorder)
+                .foregroundStyle(enableFormFields ? .blue: .gray)
+                .disabled(!enableFormFields)
             
             
             // Password field
@@ -86,14 +87,10 @@ struct ContentView: View {
                     "Password",
                     text: $inputPass
                 )
-                .onSubmit {
-                    
-
-                    // ...
-                    
-                    
-                }
-                .border(.secondary)
+                .onSubmit { }
+                .textFieldStyle(.roundedBorder)
+                .foregroundStyle(enableFormFields ? .blue: .gray)
+                .disabled(!enableFormFields)
                 
                 // Password reveal button
                 Button {
@@ -108,52 +105,181 @@ struct ContentView: View {
             // Password visibility
             if isPasswordVisible {
                 TextField("Reveal password", text: $inputPass)
-            } else {
-//                SecureField("Reveal password", text: $inputPass)
+                    .foregroundStyle(.gray)
             }
                 
             
             // Connect button
             Button {
                 
-                // Submit clean credentials to login object
-                login.clearCredentials()
-                
-                // Attempt to set the credentials
-                // Setting the port throws an exception if invalid
-                do {
-                    try login.setCredentials(
-                        inputHost: inputHost,
-                        inputPort: inputPort,
-                        inputUser: inputUser,
-                        inputPass: inputPass
-                        )
-                }
-                catch {
-                    print("ERROR: Bad port")
+                // CONNECT
+                if (toggleConnectBtn) {
                     
-                    // ...
+                    // Clear any existing credential data before submitting
+                    login.clearCredentials()
+                    
+                    // Disable login fields
+                    enableFormFields = false
+                    
+                    // Disable connect button
+                    enableConnectBtn = false
+                    
+                    // Attempt to set the credentials
+                    // Setting the port throws an exception if invalid
+                    do {
+                        try login.setCredentials(
+                            inputHost: inputHost,
+                            inputPort: inputPort,
+                            inputUser: inputUser,
+                            inputPass: inputPass
+                            )
+                    }
+                    catch MqCredentialsError.missingRequired {
+                        statusMsg = "ERROR: Host and port are required. Additionally provide a username and password if your broker requires authentication."
+                        enableFormFields = true
+                        enableConnectBtn = true
+                        return
+                    }
+                    catch MqCredentialsError.badPort {
+                        statusMsg = "ERROR: Invalid port detected. Please input a valid port number within the range 1 to 65,535"
+                        enableFormFields = true
+                        enableConnectBtn = true
+                        return
+                    }
+                    catch {
+                        statusMsg = "ERROR: Unexpected credential error"
+                        enableFormFields = true
+                        enableConnectBtn = true
+                        return
+
+                    }
+                    
+                    // Assign login to MQTT client
+                    client.setLogin(mqLogin: login)
+                    
+                    // Initialize this view in the client class
+                    client.setView(v: self)
+                    
+                    // Attempt to establish a connection
+                    client.connectToBroker()
                     
                 }
+                // DISCONNECT
+                else {
+                    // Stop sending location updates
+                    location.stopLocationUpdates()
+                    
+                    // Disconnect from broker
+                    client.disconnect()
+                    
+                }
+            }
+            label: {
+                // Connect, enabled
+                if (toggleConnectBtn && enableConnectBtn) {
+                    Text("Connect")
+                        .padding(.all)
+                        .background(.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
+                }
+                // Connect, disabled
+                else if (toggleConnectBtn && !enableConnectBtn) {
+                    Text("Connect")
+                        .padding(.all)
+                        .background(.gray)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
+                }
+                // Disconnect, enabled
+                else if (!toggleConnectBtn && enableConnectBtn) {
+                    Text("Disconnect")
+                        .padding(.all)
+                        .background(.red)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
+                }
+                // Disconnect, disabled
+                else if (!toggleConnectBtn && !enableConnectBtn) {
+                    Text("Disconnect")
+                        .padding(.all)
+                        .background(.gray)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
+                }
                 
-                // Login object basic syntax check
                 
-                // Attempt a connection
+            }
+            .disabled(!enableConnectBtn)
+            
+            
+            // Location updates button
+            Button {
+                                
+                /**
+                 Initialize this view in the location class so that it can send location updates
+                 to the MQTT broker using this view's client instance.
+                 
+                 startLocationUpdates() gets location and returns location to its delegate, which then
+                 references view.client to access the client's send method.
+                 */
+                location.setView(v: self)
                 
+                
+                if (toggleLocationBtn == true) {
+                    location.startLocationUpdates()
+                    toggleLocationBtn.toggle()
+                }
+                else {
+                    location.stopLocationUpdates()
+                    toggleLocationBtn.toggle()
+                }
                 
             } label: {
-                Text("Connect")
-                    .padding(.all)
-                    .background(.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(16)
+                // Send location, enabled
+                if (toggleLocationBtn && enableLocationBtn) {
+                    Text("Send location updates")
+                        .padding(.all)
+                        .background(.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
+                }
+                // Send location, disabled
+                else if (toggleLocationBtn && !enableLocationBtn) {
+                    Text("Send location updates")
+                        .padding(.all)
+                        .background(.gray)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
+                }
+                // Stop sending location, enabled
+                else if (!toggleLocationBtn && enableLocationBtn) {
+                    Text("Stop location updates")
+                        .padding(.all)
+                        .background(.red)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
+                }
+                // Stop sending location, disabled
+                else if (!toggleLocationBtn && !enableLocationBtn){
+                    Text("Stop location updates")
+                        .padding(.all)
+                        .background(.gray)
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
+                }
             }
-
+            .disabled(!enableLocationBtn)
             
+            
+            // System message output text field
+            Text(statusMsg)
             
         }
         .padding()
     }
+    
+    
 }
 
 #Preview {

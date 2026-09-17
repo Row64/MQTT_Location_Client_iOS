@@ -11,21 +11,20 @@ class MqLogin {
     
     init() {
         host = ""
-        port = -1
+        port = 0
         user = ""
         pass = ""
     }
     
     // Login variables
     private var host: String
-    private var port: Int
+    private var port: UInt16
     private var user: String
     private var pass: String
     
     
     /**
      Retrieve the login and assign to the class' variables.
-     
      Perform a basic syntax check for the port number.
      */
     func setCredentials(
@@ -35,6 +34,14 @@ class MqLogin {
         inputPass: String
     ) throws
     {
+        
+        // Verify that requird credentials are present
+        // Host and port are required. Username and password are optional
+        if (inputHost.isEmpty || inputHost.isEmpty) {
+            throw MqCredentialsError.missingRequired
+        }
+        
+        
         // Assign inputted variables to login variables
         host = inputHost
         user = inputUser
@@ -43,9 +50,9 @@ class MqLogin {
         
         // Convert port (String) to integer
         // Failed conversion does not throw an error, but is an optional Int
-        // Use nil coalescing to force a value for failed conversion
+        // Use nil coalescing to assign a value for failed conversion
         // Use an out-of-range port number to signify an error
-        port = Int(inputPort) ?? -1
+        port = UInt16(inputPort) ?? 0
         
         
         // Check that port is within valid range
@@ -54,15 +61,7 @@ class MqLogin {
             throw MqCredentialsError.badPort
         }
             
-        
-        
-        
-        
     }
-    
-    
-    
-    
     
     
     /**
@@ -77,16 +76,27 @@ class MqLogin {
      This function returns an integer that signifies which authentication method was detected:
      0 = No authentication
      1 = Username only
-     2 = Basic authentication (username & password
+     2 = Basic authentication (username & password)
+     -1 = Error
      */
     func getAuthMethod() -> Int {
-        
-        
-        return 0
+        if user.isEmpty {
+            print("Detected authentication: No authentication")
+            return 0
+        }
+        else if !user.isEmpty && pass.isEmpty {
+            print("Detected authentication: Username, no password")
+            return 1
+        }
+        else if !user.isEmpty && !pass.isEmpty {
+            print("Detected authentication: Basic authentication")
+            return 2
+        }
+        else {
+            print("Detected authentication: ERROR")
+            return -1
+        }
     }
-    
-    
-    
     
     
     /**
@@ -96,9 +106,16 @@ class MqLogin {
      Otherwise, old credentials will be carried over to a new login attempt.
      */
     func clearCredentials() {
-        
+        host = ""
+        port = 0
+        user = ""
+        pass = ""
     }
     
     
+    func getHost() -> String { return host }
+    func getPort() -> UInt16 { return port }
+    func getUser() -> String { return user }
+    func getPass() -> String { return pass }
     
 }
