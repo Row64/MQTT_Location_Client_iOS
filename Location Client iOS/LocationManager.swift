@@ -15,7 +15,6 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     // Timer variables
     private var timer: Timer?
-//    private var timerContinue: Bool = true
     
     // View
     private var view: ContentView?
@@ -54,14 +53,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
      defaults can be overwritten when the method is called, if needed.
      */
     func startLocationUpdates(useInterval: Bool = true, interval: Double = 5.0) {
-        
-//        timerContinue = true
-        
+                
         // Request permissions to access location, if needed.
         locationManager.requestWhenInUseAuthorization()
-        
-        // FOR TESTING
-        var timerLooped: Int = 0
         
         // Send location updates either using the default startUpdatingLocation() method,
         // or by looping at an interval.
@@ -74,17 +68,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
             
             timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) {timer in
                 
-                // Check if the loop can continue
-                // Loop can be invalidated by calling LocationManager's stopLocationUpdates() method
-//                if (self.timerContinue == false) { timer.invalidate() }
-                
                 // Get a one-time location value
                 // Handle the value in the delegate
                 self.locationManager.requestLocation()
-                
-                // FOR TESTING
-                timerLooped += 1
-                print("Timer completed loop \(timerLooped)")
                 
             }
             
@@ -97,9 +83,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     func stopLocationUpdates() {
         
         timer?.invalidate()
-        
-//        timerContinue = false
-        
+                
         locationManager.stopUpdatingLocation()
         print("Location updates stopped.")
     }

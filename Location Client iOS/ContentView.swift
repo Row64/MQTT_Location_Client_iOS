@@ -30,7 +30,6 @@ struct ContentView: View {
     
     // Location object
     private var location = LocationManager()
-//    @State private var location: LocationManager
     
     // Status message variable
     @State public var statusMsg: String = "Status messages appear here..."
@@ -42,10 +41,6 @@ struct ContentView: View {
             
             Text("Row64 Location Client")
             
-            // Text fields
-            // https://developer.apple.com/documentation/swiftui/textfield
-            
-            
             // Host field
             TextField(
                     "Host",
@@ -54,7 +49,6 @@ struct ContentView: View {
                 .onSubmit { }
                 .textInputAutocapitalization(.never)
                 .disableAutocorrection(true)
-//                .border(.secondary)
                 .textFieldStyle(.roundedBorder)
                 .foregroundStyle(enableFormFields ? .blue: .gray)
                 .disabled(!enableFormFields)
@@ -68,7 +62,6 @@ struct ContentView: View {
                 .onSubmit { }
                 .textInputAutocapitalization(.never)
                 .disableAutocorrection(true)
-//                .border(.secondary)
                 .textFieldStyle(.roundedBorder)
                 .foregroundStyle(enableFormFields ? .blue: .gray)
                 .disabled(!enableFormFields)
@@ -83,7 +76,6 @@ struct ContentView: View {
                 .onSubmit { }
                 .textInputAutocapitalization(.never)
                 .disableAutocorrection(true)
-//                .border(.secondary)
                 .textFieldStyle(.roundedBorder)
                 .foregroundStyle(enableFormFields ? .blue: .gray)
                 .disabled(!enableFormFields)
@@ -96,7 +88,6 @@ struct ContentView: View {
                     text: $inputPass
                 )
                 .onSubmit { }
-//                .border(.secondary)
                 .textFieldStyle(.roundedBorder)
                 .foregroundStyle(enableFormFields ? .blue: .gray)
                 .disabled(!enableFormFields)
@@ -109,23 +100,20 @@ struct ContentView: View {
                         .foregroundColor(.gray)
                     }
                 
-                
                 }
             
             // Password visibility
             if isPasswordVisible {
                 TextField("Reveal password", text: $inputPass)
                     .foregroundStyle(.gray)
-            } else {
-//                SecureField("Reveal password", text: $inputPass)
             }
                 
             
             // Connect button
             Button {
                 
+                // CONNECT
                 if (toggleConnectBtn) {
-                    print("Connect button clicked") // For testing
                     
                     // Clear any existing credential data before submitting
                     login.clearCredentials()
@@ -172,37 +160,19 @@ struct ContentView: View {
                     // Initialize this view in the client class
                     client.setView(v: self)
                     
-                    
                     // Attempt to establish a connection
-    //                statusMsg = "Attempting to connect..."
                     client.connectToBroker()
-
-                    // toggle button?
-
-
-                }
-                else {
-                    // For disconnect
                     
+                }
+                // DISCONNECT
+                else {
                     // Stop sending location updates
                     location.stopLocationUpdates()
                     
                     // Disconnect from broker
                     client.disconnect()
                     
-//                    statusMsg = "Disconnected from the broker."
-                    
-                    // After successful disconnect, toggle the button
-                    // (maybe put in the delegate, not here?)
-//                    toggleConnectBtn.toggle()
-                    
-                    // ...
                 }
-                
-                
-                
-                
-                
             }
             label: {
                 // Connect, enabled
@@ -243,16 +213,9 @@ struct ContentView: View {
             .disabled(!enableConnectBtn)
             
             
-            
-            
-            
-            
-            
             // Location updates button
             Button {
-                
-//                location.startLocationUpdates()
-                
+                                
                 /**
                  Initialize this view in the location class so that it can send location updates
                  to the MQTT broker using this view's client instance.
@@ -273,12 +236,6 @@ struct ContentView: View {
                 }
                 
             } label: {
-//                Text("Send location updates")
-//                    .padding(.all)
-//                    .background(.blue)
-//                    .foregroundColor(.white)
-//                    .cornerRadius(16)
-                
                 // Send location, enabled
                 if (toggleLocationBtn && enableLocationBtn) {
                     Text("Send location updates")
@@ -311,22 +268,12 @@ struct ContentView: View {
                         .foregroundColor(.white)
                         .cornerRadius(16)
                 }
-                
-                
-                
-                
             }
             .disabled(!enableLocationBtn)
             
             
-            
-            
-            
-            
             // System message output text field
             Text(statusMsg)
-
-            
             
         }
         .padding()

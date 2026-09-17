@@ -113,17 +113,9 @@ class MqLogin {
     }
     
     
-    
-    
-    
-    
-    
     func getHost() -> String { return host }
-    
     func getPort() -> UInt16 { return port }
-    
     func getUser() -> String { return user }
-    
     func getPass() -> String { return pass }
     
 }
