@@ -208,8 +208,20 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
             // values are currently used.
             mqtt!.keepAlive = 60
             mqtt!.delegate = self
-            mqtt!.enableSSL = true // Important when using port 8883
             mqtt!.autoReconnect = false
+            
+            // Apply SSL based on port
+            switch login!.getPort() {
+            case 8883:
+                mqtt!.enableSSL = true
+                print("SSL applied to client v3")
+            case 1883:
+                mqtt!.enableSSL = false
+                print("SSL not applied to client v3")
+            default:
+                mqtt!.enableSSL = false
+                print("SSL not applied to client v3")
+            }
             
             print("MQTT 3 client successfully initialized")
         }
@@ -242,8 +254,21 @@ class MqClient: CocoaMQTTDelegate, CocoaMQTT5Delegate {
             // values are currently used.
             mqtt5!.keepAlive = 60
             mqtt5!.delegate = self
-            mqtt5!.enableSSL = true // Important when using port 8883
+            //mqtt5!.enableSSL = true // Important when using port 8883
             mqtt5!.autoReconnect = false
+            
+            // Apply SSL based on port
+            switch login!.getPort() {
+            case 8883:
+                mqtt5!.enableSSL = true
+                print("SSL applied to client v5")
+            case 1883:
+                mqtt5!.enableSSL = false
+                print("SSL not applied to client v5")
+            default:
+                mqtt5!.enableSSL = false
+                print("SSL not applied to client v5")
+            }
             
             print("MQTT 5 client successfully initialized")
         }
