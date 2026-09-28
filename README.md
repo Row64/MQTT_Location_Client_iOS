@@ -38,7 +38,7 @@ To connect to an MQTT broker, users must provide a valid host and port, in addit
 * Username-only authentication
 * Basic authentication (username and password)
 
-*Users must currently connect over port 8883 (MQTT over TLS/SSL). At this time, using other ports may result in a connection failure.*
+*Users must currently connect over port 8883 (MQTT over TLS/SSL) or port 1883.*
 
 
 
